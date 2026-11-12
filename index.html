@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="manifest" href="manifest.json">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>My Finances</title>
+    <link rel="stylesheet" href="style.css?v=17.0">
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+    <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
+    <!-- FRONTEND -->
+    <script defer src="frontend/onboarding.js?v=20.0"></script>
+    <script defer src="frontend/i18n.js?v=20.0"></script>
+    <script defer src="frontend/currency.js?v=20.0"></script>
+    <script defer src="frontend/state.js?v=20.0"></script>
+    <script defer src="frontend/helpers.js?v=20.0"></script>
+    <script defer src="frontend/budgets.js?v=20.0"></script>
+    <script defer src="frontend/balance.js?v=20.0"></script>
+    <script defer src="frontend/categories.js?v=20.0"></script>
+    <script defer src="frontend/transactions.js?v=20.0"></script>
+
+    <!-- BACKEND -->
+    <script defer src="backend/firebase-config.js?v=20.0"></script>
+    <script defer src="backend/notifications.js?v=20.0"></script>
+    <script defer src="backend/boards.js?v=20.0"></script>
+    <script defer src="backend/auth.js?v=20.0"></script>
+    <script defer src="backend/sw-register.js?v=20.0"></script>
+
+    <!-- FRONTEND (Extensiones y Vistas) -->
+    <script defer src="frontend/recommendations.js?v=20.0"></script>
+    <script defer src="frontend/features.js?v=20.0"></script>
+</head>
+<body>
+
+<!-- ===== BLOQUE DE ONBOARDING + LOGIN LOCAL (MonAi) ===== -->
+<div class="monai-onb" id="monaiOnboarding">
+    <div class="monai-onb__shell">
+        <div class="monai-screen monai-active" data-screen="welcome">
+            <div class="monai-spacer" style="flex:0.3"></div>
+            <div class="monai-welcome-emojis">
+                <div class="monai-bubble b1">🌱</div>
+                <div class="monai-bubble b2">📊</div>
+                <div class="monai-bubble b3">💰</div>
+                <div class="monai-bubble b4">🎯</div>
+                <div class="monai-bubble b5">🍃</div>
+            </div>
+            <div class="monai-h1" style="text-align:center;" data-i18n="welcome_title">Bienvenido a <span class="monai-accent">Mis Finanzas</span></div>
+            <div class="monai-sub" style="text-align:center;" data-i18n="welcome_sub">Tus finanzas, claras y bajo control</div>
+            <div class="monai-spacer"></div>
+            <button class="monai-btn-primary" data-action="go-step1" data-i18n="start_btn">→ Comenzar</button>
+            <button class="monai-btn-ghost" data-action="go-login" style="text-align:center;" data-i18n="have_account">¿Ya tienes una cuenta? <span class="monai-link" data-i18n="login_link">Iniciar sesión</span></button>
+            <div class="monai-terms" data-i18n="terms">Tus datos se guardan en la nube.</div>
+        </div>
+
+        <div class="monai-screen" data-screen="q1">
+            <div class="monai-topbar">
+                <button class="monai-back" data-action="go-welcome">‹</button>
+                <div class="monai-step-pill"><span class="monai-step-ring"></span> <span data-i18n="step_1">1/3</span></div>
+            </div>
+            <div class="monai-icon-badge">🎯</div>
+            <div class="monai-h1" data-i18n="q1_title">¿Qué te gustaría <span class="monai-accent">lograr</span> con tus finanzas?</div>
+            <div class="monai-sub" data-i18n="q1_sub">Elige una</div>
+            <div class="monai-options" data-question="q1" data-mode="single">
+                <div class="monai-opt" data-value="ahorrar"><span class="monai-opt-emoji">🌱</span><span class="monai-opt-label" data-i18n="q1_opt1">Ahorrar más cada mes</span></div>
+                <div class="monai-opt" data-value="claridad"><span class="monai-opt-emoji">🔍</span><span class="monai-opt-label" data-i18n="q1_opt2">Saber en qué se me va</span></div>
+                <div class="monai-opt" data-value="meta"><span class="monai-opt-emoji">🎯</span><span class="monai-opt-label" data-i18n="q1_opt3">Cumplir una meta puntual</span></div>
+                <div class="monai-opt" data-value="calma"><span class="monai-opt-emoji">🧘</span><span class="monai-opt-label" data-i18n="q1_opt4">Dejar de vivir con estrés</span></div>
+            </div>
+            <div class="monai-spacer"></div>
+            <button class="monai-btn-primary" data-action="go-q2" disabled data-i18n="next_btn">→ Siguiente</button>
+        </div>
+
+        <div class="monai-screen" data-screen="q2">
+            <div class="monai-topbar">
+                <button class="monai-back" data-action="go-q1">‹</button>
+                <div class="monai-step-pill"><span class="monai-step-ring monai-done"></span> <span data-i18n="step_2">2/3</span></div>
+            </div>
+            <div class="monai-icon-badge">🔥</div>
+            <div class="monai-h1" data-i18n="q2_title">¿Qué se <span class="monai-accent">come</span> tu presupuesto?</div>
+            <div class="monai-sub" data-i18n="q2_sub">Elige las que quieras (mínimo 1)</div>
+            <div class="monai-options monai-options-scroll" data-question="q2" data-mode="multi">
+                <div class="monai-opt" data-value="fastfood"><span class="monai-opt-emoji">🍔</span><span class="monai-opt-label" data-i18n="q2_opt1">Fast Food</span></div>
+                <div class="monai-opt" data-value="restaurantes"><span class="monai-opt-emoji">🍽️</span><span class="monai-opt-label" data-i18n="q2_opt2">Restaurantes</span></div>
+                <div class="monai-opt" data-value="cafe"><span class="monai-opt-emoji">☕</span><span class="monai-opt-label" data-i18n="q2_opt3">Café</span></div>
+                <div class="monai-opt" data-value="delivery"><span class="monai-opt-emoji">🛵</span><span class="monai-opt-label" data-i18n="q2_opt4">Delivery</span></div>
+                <div class="monai-opt" data-value="diversion"><span class="monai-opt-emoji">🎉</span><span class="monai-opt-label" data-i18n="q2_opt5">Diversión</span></div>
+                <div class="monai-opt" data-value="salidas_nocturnas"><span class="monai-opt-emoji">🌃</span><span class="monai-opt-label" data-i18n="q2_opt6">Salidas Nocturnas</span></div>
+                <div class="monai-opt" data-value="transporte"><span class="monai-opt-emoji">🚕</span><span class="monai-opt-label" data-i18n="q2_opt7">Transporte</span></div>
+                <div class="monai-opt" data-value="shopping"><span class="monai-opt-emoji">🛍️</span><span class="monai-opt-label" data-i18n="q2_opt8">Shopping</span></div>
+                <div class="monai-opt" data-value="ropa"><span class="monai-opt-emoji">👗</span><span class="monai-opt-label" data-i18n="q2_opt9">Ropa</span></div>
+                <div class="monai-opt" data-value="suscripciones"><span class="monai-opt-emoji">📱</span><span class="monai-opt-label" data-i18n="q2_opt10">Suscripciones</span></div>
+                <div class="monai-opt" data-value="tecnologia"><span class="monai-opt-emoji">💻</span><span class="monai-opt-label" data-i18n="q2_opt11">Tecnología</span></div>
+                <div class="monai-opt" data-value="mascotas"><span class="monai-opt-emoji">🐶</span><span class="monai-opt-label" data-i18n="q2_opt12">Mascotas</span></div>
+            </div>
+            <div class="monai-spacer"></div>
+            <button class="monai-btn-primary" data-action="go-q3" disabled data-i18n="next_btn">→ Siguiente</button>
+        </div>
+
+        <div class="monai-screen" data-screen="q3">
+            <div class="monai-topbar">
+                <button class="monai-back" data-action="go-q2">‹</button>
+                <div class="monai-step-pill"><span class="monai-step-ring monai-done"></span> <span data-i18n="step_3">3/3</span></div>
+            </div>
+            <div class="monai-icon-badge">📋</div>
+            <div class="monai-h1" data-i18n="q3_title">¿Cómo prefieres <span class="monai-accent">registrar</span> tus gastos?</div>
+            <div class="monai-sub" data-i18n="q3_sub">Elige una</div>
+            <div class="monai-options" data-question="q3" data-mode="single">
+                <div class="monai-opt" data-value="rapido"><span class="monai-opt-emoji">⌨️</span><span class="monai-opt-label" data-i18n="q3_opt1">Escribiéndolo rápido</span></div>
+                <div class="monai-opt" data-value="voz"><span class="monai-opt-emoji">🎙️</span><span class="monai-opt-label" data-i18n="q3_opt2">Diciéndolo en voz alta</span></div>
+                <div class="monai-opt" data-value="auto"><span class="monai-opt-emoji">🔄</span><span class="monai-opt-label" data-i18n="q3_opt3">Automático al pagar</span></div>
+                <div class="monai-opt" data-value="facil"><span class="monai-opt-emoji">🤷</span><span class="monai-opt-label" data-i18n="q3_opt4">Lo más fácil del momento</span></div>
+            </div>
+            <div class="monai-spacer"></div>
+            <button class="monai-btn-primary" data-action="go-loading" disabled data-i18n="create_plan_btn">→ Crear mi plan</button>
+        </div>
+
+        <div class="monai-screen" data-screen="loading">
+            <div class="monai-topbar"><button class="monai-back" data-action="go-q3">‹</button><div></div></div>
+            <div class="monai-loading-wrap">
+                <div class="monai-h1" style="text-align:center;" data-i18n="creating_profile">Creando <span class="monai-accent">tu perfil…</span></div>
+                <div class="monai-loading-orbit">
+                    <div class="monai-orbit-ring"></div>
+                    <div class="monai-orbit-center">🌱</div>
+                    <div class="monai-orbit-dot d1">📊</div>
+                    <div class="monai-orbit-dot d2">🎯</div>
+                    <div class="monai-orbit-dot d3">💰</div>
+                </div>
+                <div class="monai-loading-msg" data-i18n="analyzing">Analizando tus <span class="monai-accent">respuestas</span></div>
+                <div class="monai-loading-fact" data-i18n="fact">Solo el hecho de registrar tus gastos ya cambia tus hábitos de consumo, sin hacer nada más.</div>
+            </div>
+        </div>
+
+        <div class="monai-screen" data-screen="auth">
+            <div class="monai-topbar">
+                <button class="monai-back" data-action="go-welcome">‹</button>
+                <div></div>
+            </div>
+            <div class="monai-h1" data-i18n="auth_title">Guarda tu <span class="monai-accent">progreso</span></div>
+            <div class="monai-sub" data-i18n="auth_sub">Crea tu cuenta o entra a la que ya tienes</div>
+            <div class="monai-tabs">
+                <div class="monai-tab monai-active-tab" data-tab="create" data-i18n="tab_create">Crear cuenta</div>
+                <div class="monai-tab" data-tab="login" data-i18n="tab_login">Iniciar sesión</div>
+            </div>
+            <div data-authpane="create">
+                <div class="monai-field">
+                    <label data-i18n="name_label">Nombre</label>
+                    <input type="text" id="monaiName" placeholder="¿Cómo te llamas?" maxlength="30" data-i18n-placeholder="name_placeholder">
+                </div>
+                <div class="monai-field">
+                    <label data-i18n="email_label">Correo</label>
+                    <input type="email" id="monaiEmailCreate" placeholder="tu@correo.com" data-i18n-placeholder="email_placeholder">
+                </div>
+                <div class="monai-field">
+                    <label data-i18n="password_label">Contraseña</label>
+                    <input type="password" id="monaiPasswordCreate" placeholder="Mínimo 8 caracteres" data-i18n-placeholder="password_placeholder">
+                </div>
+                <div class="monai-error" id="monaiCreateError"></div>
+                <button class="monai-btn-primary" onclick="crearCuentaConEmailYPassword()" data-i18n="create_account_btn">Crear mi cuenta</button>
+            </div>
+            <div data-authpane="login" style="display:none;">
+                <div class="monai-field">
+                    <label data-i18n="email_label">Correo</label>
+                    <input type="email" id="monaiEmailLogin" placeholder="tu@correo.com" data-i18n-placeholder="email_placeholder">
+                </div>
+                <div class="monai-field">
+                    <label data-i18n="password_label">Contraseña</label>
+                    <input type="password" id="monaiPasswordLogin" placeholder="••••••••" data-i18n-placeholder="password_placeholder_login">
+                </div>
+                <div class="monai-error" id="monaiLoginError"></div>
+                <button class="monai-btn-primary" onclick="iniciarSesionConEmailYPassword()" data-i18n="login_btn">Iniciar sesión</button>
+            </div>
+            <div class="monai-or-divider"><span data-i18n="or_divider">o continúa con</span></div>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <button id="btnGoogleLogin" class="monai-oauth-btn monai-oauth-google">
+                    <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
+                        <path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z"/>
+                        <path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z"/>
+                        <path fill="#FBBC05" d="M11.69 28.18C11.25 26.86 11 25.45 11 24s.25-2.86.69-4.18v-5.7H4.34C2.85 17.09 2 20.45 2 24s.85 6.91 2.34 9.88l7.35-5.7z"/>
+                        <path fill="#EA4335" d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.93 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.35 5.7c1.73-5.2 6.58-9.07 12.31-9.07z"/>
+                    </svg>
+                    <span data-i18n="continue_google">Continuar con Google</span>
+                </button>
+                <button id="btnAppleLogin" class="monai-oauth-btn monai-oauth-apple">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff" aria-hidden="true">
+                        <path d="M16.365 1.43c0 1.14-.462 2.203-1.157 2.978-.822.906-2.09 1.61-3.14 1.522-.135-1.086.44-2.24 1.157-2.978.822-.86 2.267-1.51 3.14-1.522zM20.94 17.19c-.53 1.222-.784 1.77-1.463 2.85-.947 1.51-2.28 3.39-3.938 3.41-1.47.016-1.85-.96-3.84-.95-1.99.01-2.41.966-3.88.95-1.658-.02-2.92-1.72-3.87-3.23-2.65-4.2-2.93-9.13-1.29-11.75 1.16-1.86 3-2.95 4.73-2.95 1.76 0 2.87 1 4.33 1 1.41 0 2.28-1 4.32-1 1.55 0 3.19.85 4.35 2.31-3.82 2.1-3.2 7.55.55 9.36z"/>
+                    </svg>
+                    <span data-i18n="continue_apple">Continuar con Apple</span>
+                </button>
+            </div>
+            <div class="monai-terms" data-i18n="terms_cloud">Al continuar aceptas guardar tu información en la nube.</div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== APP PRINCIPAL ===== -->
+<div id="app">
+    <div class="header">
+        <div class="title-dropdown" onclick="openBoardSelector()" style="display:flex; align-items:center; gap:8px; cursor:pointer; position:relative;">
+            <span id="activeBoardName">My finances</span> <span style="font-size:12px;">⌄</span>
+        </div>
+        <div class="header-icons">
+            <button class="icon-btn" id="btnNotifications" onclick="openNotificationsModal()" style="position:relative;">🔔
+                <span id="notificationsBadge" style="display:none; position:absolute; top:-4px; right:-4px; background:#ff4b4b; color:#fff; font-size:10px; font-weight:800; min-width:16px; height:16px; border-radius:8px; text-align:center; line-height:16px; padding:0 4px;">0</span>
+            </button>
+            <div class="filter-pill" id="activeFilterPill" onclick="clearCategoryFilter()">
+                <span id="filterIcon">🔔</span> <div class="close-x">✕</div>
+            </div>
+            <button class="icon-btn" id="btnToggleCalendar">📅</button>
+            <button class="icon-btn" id="btnSettings" onclick="openSettings()">⚙️</button>
+        </div>
+    </div>
+
+    <div class="months-scroll" id="calendarBar">
+        <div class="month-item" id="m_Jan" onclick="filterByMonth('January')">January<div class="month-balance-sub">$0</div></div>
+        <div class="month-item" id="m_Feb" onclick="filterByMonth('February')">February<div class="month-balance-sub">$0</div></div>
+        <div class="month-item" id="m_Mar" onclick="filterByMonth('March')">March<div class="month-balance-sub">$0</div></div>
+        <div class="month-item" id="m_Apr" onclick="filterByMonth('April')">April<div class="month-balance-sub">$0</div></div>
+        <div class="month-item" id="m_May" onclick="filterByMonth('May')">May<div class="month-balance-sub">$0</div></div>
+        <div class="month-item" id="m_Jun" onclick="filterByMonth('June')">June<div class="month-balance-sub">$0</div></div>
+        <div class="month-item" id="m_Jul" onclick="filterByMonth('July')">July<div class="month-balance-sub">$0</div></div>
+        <div class="month-item" id="m_Aug" onclick="filterByMonth('August')">August<div class="month-balance-sub">$0</div></div>
+        <div class="month-item" id="m_Sep" onclick="filterByMonth('September')">September<div class="month-balance-sub">$0</div></div>
+        <div class="month-item" id="m_Oct" onclick="filterByMonth('October')">October<div class="month-balance-sub">$0</div></div>
+        <div class="month-item" id="m_Nov" onclick="filterByMonth('November')">November<div class="month-balance-sub">$0</div></div>
+        <div class="month-item" id="m_Dec" onclick="filterByMonth('December')">December<div class="month-balance-sub">$0</div></div>
+    </div>
+
+    <div class="balance-section">
+        <div class="balance-card-main">
+            <div class="scope-teaser" id="balanceScopeRow" onclick="toggleBalanceScope(event)">
+                <div class="scope-word" id="balanceScopeLabel">Explorar</div>
+                <div class="scope-arrow-down" id="balanceScopeArrow">⌄</div>
+            </div>
+            <div class="scope-active-label" id="scopeActiveLabel" style="display:none;">
+                <span id="scopeActiveName"></span>
+                <button class="scope-x" id="balanceScopeX" onclick="clearBalanceScope(event)">✕</button>
+            </div>
+            <div class="balance-scope-options" id="balanceScopeOptions"></div>
+            <div class="balance-top-label" id="balanceTopDesc" data-i18n="balance_desc">COP 0 spent</div>
+            <div class="balance-amount" id="mainBalanceClick" onclick="toggleCurrency()">
+                <div class="status-badge-circle" id="mainSignCircle">-</div>
+                <span id="mainBalanceVal">0</span> 
+                <span class="balance-currency" id="mainCurrencyLabel">COP</span>
+                <span id="negativeBalanceIcon" style="display:none; font-size:20px; cursor:pointer;" onclick="event.stopPropagation(); showRolloverInfoIcon();">❗️</span>
+            </div>
+        </div>
+        <div class="pills-row">
+            <div class="pill expense active-filter" id="pillExpense" onclick="toggleTypeFilter('expense')">
+                <div class="dot">-</div> <span id="expVal">0</span>
+            </div>
+            <div class="pill income" id="pillIncome" onclick="toggleTypeFilter('income')">
+                <div class="dot">+</div> <span id="incVal">0</span>
+            </div>
+            <div class="pill save" id="pillSave" onclick="toggleTypeFilter('save')">
+                <div class="dot"></div> <span style="padding: 0 4px;" data-i18n="save_label">Save</span>
+            </div>
+        </div>
+        <div class="save-main-options" id="saveMainOptions" style="display:none;">
+            <div class="save-main-btn active" id="mainBtnFuture" onclick="setMainSaveView('future')" data-i18n="future_savings">🔮 Future Savings</div>
+            <div class="save-main-btn" id="mainBtnBooking" onclick="setMainSaveView('booking')" data-i18n="booking">💰 Booking</div>
+        </div>
+    </div>
+
+    <div class="bars-container" id="barsContainer"></div>
+    <div class="tx-list" id="txList"></div>
+
+    <div class="bottom-accordion-bar" id="bottomAccordionBar">
+        <div class="bottom-accordion-wrapper">
+            <div class="accordion-handle-row">
+                <div class="accordion-title-toggle" onclick="cycleDetailMode(event)" id="accordionTitleLabel" data-i18n="details_by_cards">Details by cards ▾</div>
+                <span class="accordion-arrow" id="accordionArrow" onclick="toggleAccordionDetails()">▾</span>
+            </div>
+            <div class="accordion-content-panel" id="accordionContent">
+                <div id="accordionItemsContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="fab-container">
+        <button class="fab-btn add" id="btnOpenAdd">＋</button>
+        <button class="fab-btn search-fab" id="btnSearchFab" onclick="openSearch()">🔍</button>
+    </div>
+</div>
+
+<!-- ===== NOTIFICACIONES (campanita arriba) ===== -->
+<div class="modal-overlay" id="notificationsModal">
+    <div class="modal-content" style="min-height: 60vh;">
+        <div class="modal-header"><button class="close-modal" onclick="closeNotificationsModal()">✕</button></div>
+        <div style="font-size: 24px; font-weight: 800; margin-bottom: 20px;" data-i18n="notifications_title">🔔 Notificaciones</div>
+        <div id="notificationsList" style="display:flex; flex-direction:column; gap:12px;"></div>
+        <div id="notificationsEmpty" style="display:none; text-align:center; color:#8a8a8a; padding:40px 20px;">
+            <div style="font-size:48px;">🔔</div>
+            <div style="font-weight:700; margin-top:12px;" data-i18n="no_notifications">No hay notificaciones</div>
+            <div style="font-size:13px; margin-top:4px;" data-i18n="notifications_hint">Los pagos QR detectados aparecerán aquí automáticamente</div>
+        </div>
+    </div>
+</div>
+
+<!-- CONFIRMACIÓN DOBLE PARA ACEPTAR PAGO -->
+<div class="modal-overlay" id="confirmAcceptModal">
+    <div class="modal-content" style="min-height:auto; max-width:360px; text-align:center; padding:32px 24px;">
+        <div class="modal-header"><button class="close-modal" onclick="closeConfirmAccept()">✕</button></div>
+        <div style="font-size:56px;" id="confirmAcceptEmoji">💳</div>
+        <div class="title" style="margin-top:8px;" id="confirmAcceptTitle"></div>
+        <div class="desc" style="margin-top:8px;" id="confirmAcceptDesc"></div>
+        <div style="margin-top:16px; padding:16px; background:#f0f4f8; border-radius:16px; text-align:left;">
+            <div style="font-weight:700; margin-bottom:8px;" data-i18n="details">Detalles:</div>
+            <div id="confirmAcceptDetails" style="font-size:14px; color:#555;"></div>
+        </div>
+        <div style="display:flex; gap:10px; margin-top:20px;">
+            <button class="icon-action-btn confirm" style="flex:1; background:#ff4b4b; border-color:#ff4b4b;" onclick="closeConfirmAccept()" data-i18n="cancel">Cancelar</button>
+            <button class="icon-action-btn confirm" style="flex:1;" onclick="executeAcceptPayment()" data-i18n="accept_confirm">✅ Aceptar</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== MODALES ===== -->
+<!-- ADD / EDIT TRANSACTION MODAL -->
+<div class="modal-overlay" id="addModal">
+    <div class="modal-content">
+        <div class="modal-header"><button class="close-modal" id="btnCloseAdd">✕</button></div>
+        <div class="top-pills-row">
+            <button class="mini-dropdown-pill" id="datePickerBtn" onclick="toggleDatePicker()">📅 ▾</button>
+            <div class="date-picker-container" id="datePickerContainer">
+                <div class="date-picker-header">
+                    <button class="nav-btn" onclick="changeDateMonth(-1)">‹</button>
+                    <span class="month-year" id="datePickerMonthYear">July 2026</span>
+                    <button class="nav-btn" onclick="changeDateMonth(1)">›</button>
+                </div>
+                <div class="date-picker-grid" id="datePickerGrid"></div>
+            </div>
+        </div>
+        <div class="inputs-stack">
+            <input type="text" class="input-desc" id="inputDesc" placeholder="Description" data-i18n-placeholder="description_placeholder">
+            <div class="amount-container">
+            <div class="amt-input-wrapper">
+  <select id="modalCurrencySelect" onchange="modalCurrency = this.value;" style="padding:8px 12px; border-radius:12px; border:2px solid #eaeaea; font-weight:700; font-size:16px; background:#fff;">
+    <option value="COP">COP</option>
+    <option value="USD">USD</option>
+    <option value="EUR">EUR</option>
+    <option value="GBP">GBP</option>
+  </select>
+  <input type="text" inputmode="decimal" class="amt-input color-red" id="inputAmount" placeholder="Amount" data-i18n-placeholder="amount">
+</div>
+                <div class="sign-controls-wrapper">
+                    <div class="sign-controls-row">
+                        <button class="sign-btn red active" id="btnMinus">-</button>
+                        <button class="sign-btn green" id="btnPlus">+</button>
+                    </div>
+                    <button class="sign-btn blue" id="btnSaveType" data-i18n="save_btn">Save</button>
+                </div>
+            </div>
+        </div>
+        <div id="saveOptionsSection" style="display:none; margin-top:5px;">
+            <div class="save-sub-options">
+                <button class="save-sub-btn active" id="btnSaveFuture" onclick="setSaveSubType('gastos_futuros')" data-i18n="future_savings">🔮 Future Savings</button>
+                <button class="save-sub-btn" id="btnSaveBooking" onclick="setSaveSubType('booking')" data-i18n="booking">💰 Booking</button>
+            </div>
+        </div>
+        <div id="categoryContainerWrapper">
+            <div class="section-title" id="categorySectionTitle" data-i18n="category">Category</div>
+            <div class="scroll-row" id="modalCategories"></div>
+        </div>
+        <div class="section-title" id="accountSectionTitle" data-i18n="account">Account</div>
+        <div class="scroll-row" id="modalAccountsMain">
+            <button class="chip selected" id="btnAccEfectivo" onclick="setMainAcc('Efectivo')" data-i18n="cash">💵 Cash</button>
+            <button class="chip" id="btnAccTarjeta" onclick="setMainAcc('Tarjeta')" data-i18n="card">💳 Card</button>
+        </div>
+        <div class="section-title" id="cardSectionTitle" style="display:none;" data-i18n="cards">Cards</div>
+        <div class="scroll-row" id="modalAccountsSub" style="display: none; margin-top: -5px;"></div>
+        <div class="tags-display-row" id="tagsDisplayRow"></div>
+        <div class="tag-input-panel" id="tagInputPanel" style="display:none;">
+            <input type="text" id="tagInputField" placeholder="#etiqueta y Enter (ej: negocios)" data-i18n-placeholder="tag_placeholder" oninput="handleTagInput(this.value)" onkeydown="handleTagKeydown(event)" onblur="handleTagInputBlur()">
+            <div class="tag-suggestions" id="tagSuggestions"></div>
+        </div>
+        <div class="tfb-row" id="takeFromBalanceRow" style="display:none;">
+            <span class="tfb-label" data-i18n="take_from_balance">Tomar de balance</span>
+            <button class="tfb-switch" id="tfbSwitch" onclick="toggleTakeFromBalance()"><span class="tfb-knob"></span></button>
+        </div>
+        <div class="action-buttons-row">
+            <button class="icon-action-btn delete" id="btnDeleteTx" style="display:none;" onclick="deleteCurrentEditingTx()">🗑️</button>
+            <button class="icon-action-btn tag-btn" id="btnOpenTags" onclick="toggleTagInput()">#</button>
+            <button class="icon-action-btn confirm" onclick="saveTransaction()">✓</button>
+        </div>
+    </div>
+</div>
+
+<!-- SEARCH MODAL -->
+<div class="modal-overlay" id="searchModal">
+    <div class="modal-content" style="min-height: 60vh;">
+        <div class="modal-header"><button class="close-modal" onclick="closeSearch()">✕</button></div>
+        <div style="font-size: 24px; font-weight: 800; margin-bottom: 10px;" data-i18n="search_title">🔍 Search</div>
+        <input type="text" class="search-input" id="searchInput" placeholder="Search by category, title, amount or #tag..." data-i18n-placeholder="search_placeholder" oninput="performSearch()">
+        <div class="search-results" id="searchResults"></div>
+    </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay" id="settingsModal">
+    <div class="modal-content" style="min-height: 60vh;">
+        <div class="modal-header"><button class="close-modal" onclick="closeSettings()">✕</button></div>
+        <div style="font-size: 24px; font-weight: 800; margin-bottom: 20px;" data-i18n="settings_title">⚙️ Settings</div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <div class="settings-item" onclick="openAccountInfo()" style="background:#f0f7ff; border-color:#007aff;"><span class="label" data-i18n="account_info">👤 Account Information</span><span class="arrow">›</span></div>
+            <div class="settings-item" onclick="openEditCategories()"><span class="label" data-i18n="edit_categories">✏️ Edit Categories</span><span class="arrow">›</span></div>
+            <div class="settings-item" onclick="openEditCards()"><span class="label" data-i18n="edit_cards">💳 Edit Cards</span><span class="arrow">›</span></div>
+            <div class="settings-item" onclick="openBudgets()"><span class="label" data-i18n="budgets">💰 Budgets</span><span class="arrow">›</span></div>
+            <div class="settings-item" onclick="openRecurringCharges()"><span class="label" data-i18n="recurring_charges">🔁 Cobros Recurrentes</span><span class="arrow">›</span></div>
+            <div class="settings-item" onclick="exportAppData()"><span class="label" data-i18n="export_data">📤 Exportar mis datos</span><span class="arrow">›</span></div>
+            <div class="settings-item" onclick="document.getElementById('importFileInput').click()"><span class="label" data-i18n="import_data">📥 Importar mis datos</span><span class="arrow">›</span></div>
+            <input type="file" id="importFileInput" accept="application/json" style="display:none;" onchange="importAppData(event)">
+            
+            <div class="settings-item" onclick="openGoPro()" style="background:#fffbf0;"><span class="label" style="color:#b8860b; font-weight:800;" data-i18n="gopro_settings_item">⭐ Go Pro</span><span class="arrow">›</span></div>
+
+            <div class="settings-item" onclick="openRecommendation()"><span class="label" data-i18n="reco_settings_item">📊 Recomendación</span><span class="arrow">›</span></div>
+
+            <!-- Selector de Idiomas Avanzado -->
+            <div class="settings-item" onclick="openLanguageSelector()">
+                <span class="label" data-i18n="language">🌐 Language</span>
+                <span class="value" id="settingsLanguage">English</span>
+                <span class="arrow">›</span>
+            </div>
+
+            <div class="settings-item" onclick="openCurrencySelector()"><span class="label" data-i18n="primary_currency">💵 Primary Currency</span><span class="value" id="settingsPrimaryCurrency">COP</span><span class="arrow">›</span></div>
+            <div class="settings-item" style="background:#f0f4f8;" onclick="openExchangeRateButton()">
+                <span class="label" style="font-size:13px; color:#8a8a8a;" data-i18n="secondary_currency">Secondary Currency</span>
+                <span class="value" style="font-size:14px; color:#666;" id="settingsSecondaryCurrency">USD ($3,250 TRM)</span>
+            </div>
+            <div class="settings-item" style="background:#eaf7ec;" onclick="recalcularTransaccionesConTasaActual()"><span class="label" style="color:#2e7d32;">🔄 Recalcular montos con la TRM actual</span><span class="arrow">›</span></div>
+        </div>
+        <div style="margin-top: 10px; padding: 12px 20px; background: linear-gradient(135deg, #ff6b6b, #c0392b); color: white; border-radius: 14px; font-weight: 700; font-size: 15px; cursor: pointer; text-align: center; box-shadow: 0 4px 12px rgba(192, 57, 43, 0.3); transition: 0.2s;" onclick="cerrarSesion()" data-i18n="logout">🚪 Cerrar Sesión</div>
+        <div class="version-footer-box">Versión 7.0</div>
+    </div>
+</div>
+
+<!-- SELECTOR DE IDIOMAS MODAL -->
+<div class="modal-overlay" id="languageModal">
+    <div class="modal-content" style="min-height: 60vh;">
+        <div class="modal-header"><button class="close-modal" onclick="closeLanguageSelector()">✕</button></div>
+        <div style="font-size: 24px; font-weight: 800; margin-bottom: 10px;" data-i18n="select_language">🌐 Select Language</div>
+        <div class="search-box" style="margin-bottom:15px;">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="langSearchInput" placeholder="Search language..." data-i18n-placeholder="search_language" oninput="filterLanguages()">
+        </div>
+        <div class="language-list" id="languageList" style="display:flex; flex-direction:column; gap:8px; overflow-y:auto;"></div>
+    </div>
+</div>
+
+<!-- SELECTOR DE MONEDA (principal + secundarias) MODAL -->
+<div class="modal-overlay" id="currencyModal">
+    <div class="modal-content" style="min-height: 60vh;">
+        <div class="modal-header"><button class="close-modal" onclick="closeCurrencySelector()">✕</button></div>
+        <div style="font-size: 24px; font-weight: 800; margin-bottom: 15px;" data-i18n="select_currency">💵 Select Currency</div>
+        <div class="search-box" style="margin-bottom:15px;">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="currencySearchInput" placeholder="Buscar moneda..." oninput="filterCurrencies()">
+        </div>
+        <div id="currencyModalBody" style="display:flex; flex-direction:column; gap:6px; overflow-y:auto;"></div>
+    </div>
+</div>
+
+<!-- POPUP: agregar una moneda nueva como principal o secundaria -->
+<div class="modal-overlay" id="currencyAddChoiceBox">
+    <div class="modal-content" style="min-height:auto; max-width:320px; text-align:center; padding:24px;">
+        <div style="font-size:18px; font-weight:700; margin-bottom:18px;" id="currencyAddChoiceLabel"></div>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+            <button class="close-modal" style="position:static; width:100%; background:#007aff; color:#fff; border-radius:12px; padding:12px; font-weight:700;" onclick="confirmAddCurrency('primary')">Agregar a principal</button>
+            <button class="close-modal" style="position:static; width:100%; background:#f0f4f8; color:#333; border-radius:12px; padding:12px; font-weight:700;" onclick="confirmAddCurrency('secondary')">Agregar a secundaria</button>
+            <button class="close-modal" style="position:static; width:100%; background:transparent; color:#8a8a8a; border-radius:12px; padding:8px; font-weight:600;" onclick="closeCurrencyAddChoice()">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<!-- POPUP: opciones al tocar los ⋯ de una moneda (principal o secundaria) -->
+<div class="modal-overlay" id="currencyRowMenu">
+    <div class="modal-content" style="min-height:auto; max-width:320px; text-align:center; padding:24px;">
+        <div style="font-size:18px; font-weight:700; margin-bottom:18px;" id="currencyRowMenuLabel"></div>
+        <div style="display:flex; flex-direction:column; gap:10px;" id="currencyRowMenuButtons"></div>
+        <button class="close-modal" style="position:static; width:100%; background:transparent; color:#8a8a8a; border-radius:12px; padding:8px; font-weight:600; margin-top:6px;" onclick="closeCurrencyRowMenu()">Cancelar</button>
+    </div>
+</div>
+
+<!-- PICKER: elegir la nueva moneda principal (Reemplazar / Cambiar) -->
+<div class="modal-overlay" id="currencyReplaceModal">
+    <div class="modal-content" style="min-height:60vh;">
+        <div class="modal-header"><button class="close-modal" onclick="closeCurrencyReplaceModal()">✕</button></div>
+        <div style="font-size: 22px; font-weight: 800; margin-bottom: 15px;">Elegir nueva moneda principal</div>
+        <div class="search-box" style="margin-bottom:15px;">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="currencyReplaceSearchInput" placeholder="Buscar moneda..." oninput="renderCurrencyReplaceList()">
+        </div>
+        <div class="language-list" id="currencyReplaceList" style="display:flex; flex-direction:column; gap:8px; overflow-y:auto;"></div>
+    </div>
+</div>
+
+<!-- LISTA DE TASAS (TRM) cuando hay 2+ monedas secundarias -->
+<div class="modal-overlay" id="exchangeRateModal">
+    <div class="modal-content" style="min-height:30vh;">
+        <div class="modal-header"><button class="close-modal" onclick="closeExchangeRateList()">✕</button></div>
+        <div style="font-size: 24px; font-weight: 800; margin-bottom: 15px;">💱 TRM</div>
+        <div class="language-list" id="exchangeRateList" style="display:flex; flex-direction:column; gap:8px; overflow-y:auto;"></div>
+    </div>
+</div>
+
+<!-- TABLERO SELECTOR MODAL -->
+<div class="modal-overlay" id="boardSelectorModal">
+    <div class="modal-content" style="min-height: 60vh;">
+        <div class="modal-header"><button class="close-modal" onclick="closeBoardSelector()">✕</button></div>
+        <div style="font-size: 24px; font-weight: 800; margin-bottom: 20px;" data-i18n="my_boards">My Boards</div>
+        <div id="boardListContainer" style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;"></div>
+        <button class="chip add-chip" onclick="createNewBoard()" style="width:100%; justify-content:center; padding:16px; font-size:16px; font-weight:800; border:2px dashed #007aff; color:#007aff; background:#f0f7ff;" data-i18n="new_board">＋ New Board</button>
+    </div>
+</div>
+
+<!-- MODAL INFO CUENTA -->
+<div class="modal-overlay" id="accountInfoModal">
+    <div class="modal-content" style="min-height:50vh;">
+        <div class="modal-header"><button class="close-modal" onclick="closeAccountInfo()">✕</button></div>
+        <div style="font-size:24px; font-weight:800; margin-bottom:20px;" data-i18n="my_account">My Account</div>
+        <div class="account-info-card" style="background:#f8f9fa; padding:20px; border-radius:20px; margin-bottom:20px; text-align:center;">
+            <div id="accEmail" style="font-size:18px; font-weight:700; color:#1a1a1a;">usuario@correo.com</div>
+            <div id="accAuthMethod" style="font-size:14px; color:#8a8a8a;">Google Account</div>
+        </div>
+        <div class="section-title" style="color:#8a8a8a; font-size:12px; text-transform:uppercase; margin-bottom:10px;" data-i18n="my_boards">My Boards</div>
+        <div id="accBoardList" style="display:flex; flex-direction:column; gap:10px;"></div>
+    </div>
+</div>
+
+<!-- DETALLE DE MOVIMIENTO (tipo recibo) -->
+<div class="modal-overlay" id="txDetailModal">
+    <div class="modal-content" style="min-height:auto;">
+        <div class="modal-header"><button class="close-modal" onclick="closeTxDetail()">✕</button></div>
+        <div id="txDetailBody"></div>
+        <button class="wizard-create-btn" id="txDetailEditBtn" style="margin-top:18px;">✏️ Editar</button>
+    </div>
+</div>
+
+<!-- GO PRO MODAL (solo visual por ahora) -->
+<div class="modal-overlay" id="goProModal">
+    <div class="modal-content" style="min-height:auto;">
+        <div class="modal-header"><button class="close-modal" onclick="closeGoPro()">✕</button></div>
+        <div class="gopro-title" data-i18n="gopro_title">Go Pro</div>
+        <div class="gopro-subtitle" data-i18n="gopro_subtitle">Apoya el desarrollo y desbloquea funciones premium</div>
+
+        <div class="gopro-cards">
+            <div class="gopro-card gopro-card-featured" onclick="selectGoProPlan('yearly')" id="goProCardYearly">
+                <div class="gopro-badge" data-i18n="gopro_best_value">MEJOR VALOR</div>
+                <div class="gopro-card-title" data-i18n="gopro_yearly_title">12 meses</div>
+                <div class="gopro-card-price">$80.000 <span data-i18n="gopro_cop">COP</span></div>
+                <div class="gopro-card-sub" data-i18n="gopro_yearly_sub">equivale a $6.667/mes</div>
+                <div class="gopro-card-save" data-i18n="gopro_yearly_save">Ahorras 17%</div>
+            </div>
+            <div class="gopro-card" onclick="selectGoProPlan('monthly')" id="goProCardMonthly">
+                <div class="gopro-card-title" data-i18n="gopro_monthly_title">Mensual</div>
+                <div class="gopro-card-price">$6.500 <span data-i18n="gopro_cop">COP</span></div>
+                <div class="gopro-card-sub" data-i18n="gopro_monthly_sub">facturación mensual</div>
+            </div>
+        </div>
+
+        <button class="gopro-continue-btn" onclick="continuarGoPro()" data-i18n="gopro_continue">Continuar</button>
+        <div class="gopro-fineprint" data-i18n="gopro_cancel_anytime">Cancelas cuando quieras</div>
+
+        <div class="gopro-footer-links">
+            <span onclick="goProPrivacidad()" data-i18n="gopro_privacy">Privacidad</span>
+            <span>·</span>
+            <span onclick="goProRestaurar()" data-i18n="gopro_restore">Restaurar compras</span>
+            <span>·</span>
+            <span onclick="goProContacto()" data-i18n="gopro_contact">Contacto</span>
+        </div>
+    </div>
+</div>
+
+<!-- RECOMENDACIÓN MODAL (sección nueva e independiente) -->
+<div class="modal-overlay" id="recoModal">
+    <div class="modal-content" style="min-height:85vh;">
+        <div class="modal-header"><button class="close-modal" onclick="closeRecommendation()">✕</button></div>
+        <div style="font-size:22px; font-weight:800; margin-bottom:14px;">📊 <span data-i18n="reco_title">Recomendación</span></div>
+
+        <div class="reco-tabs">
+            <button class="reco-tab active" id="recoTabBuy" onclick="recoSetTab('buy')" data-i18n="reco_buy">Comprar</button>
+            <button class="reco-tab" id="recoTabSell" onclick="recoSetTab('sell')" data-i18n="reco_sell">Vender</button>
+        </div>
+
+        <div class="reco-field">
+            <label class="reco-label" id="recoLocalLabel">Moneda local</label>
+            <select class="reco-select" id="recoLocalSelect" onchange="recoOnCurrencyChange('local')"></select>
+        </div>
+        <div class="reco-field">
+            <label class="reco-label" id="recoForeignLabel">Moneda a comprar</label>
+            <select class="reco-select" id="recoForeignSelect" onchange="recoOnCurrencyChange('foreign')"></select>
+        </div>
+        <div class="reco-field">
+            <label class="reco-label" id="recoAmountLabel">Monto en COP</label>
+            <input type="text" class="reco-input" id="recoAmountInput" inputmode="decimal" placeholder="0" oninput="formatThousandInput(this); recoOnAmountInput();">
+        </div>
+
+        <div class="reco-range-chips" id="recoRangeChips" style="display:none;"></div>
+
+        <div class="reco-result" id="recoResultText"></div>
+
+        <div class="reco-trend-header" id="recoTrendHeader"></div>
+        <div class="reco-chart-box" id="recoChartBox"></div>
+        <div class="reco-trend-big" id="recoTrendBig"></div>
+
+        <div class="reco-semaforo-wrap">
+            <div class="reco-semaforo-circle" id="recoSemaforoCircle"></div>
+            <div class="reco-semaforo-label" id="recoSemaforoLabel"></div>
+        </div>
+
+        <div class="reco-analisis" id="recoAnalisis"></div>
+
+        <button class="reco-history-btn" onclick="recoOpenHistoryModal()" data-i18n="reco_view_history">Ver historial</button>
+
+        <div class="reco-disclaimer" data-i18n="reco_disclaimer">Este análisis se basa en datos históricos. No garantiza resultados futuros. No constituye asesoría financiera.</div>
+    </div>
+</div>
+
+<!-- HISTORIAL DE RECOMENDACIONES (modal secundario) -->
+<div class="modal-overlay" id="recoHistoryModal">
+    <div class="modal-content" style="min-height:auto;">
+        <div class="modal-header"><button class="close-modal" onclick="document.getElementById('recoHistoryModal').classList.remove('open')">✕</button></div>
+        <div style="font-size:20px; font-weight:800; margin-bottom:14px;" data-i18n="reco_history_title">Historial de recomendaciones</div>
+        <div id="recoHistoryList"></div>
+    </div>
+</div>
+
+<!-- COBROS RECURRENTES MODAL -->
+<div class="modal-overlay" id="recurringChargesModal">
+    <div class="modal-content" style="min-height: 70vh;">
+        <div class="modal-header"><button class="close-modal" onclick="closeRecurringCharges()">✕</button></div>
+        <div style="font-size: 24px; font-weight: 800; margin-bottom: 5px;" data-i18n="recurring_charges">🔁 Cobros Recurrentes</div>
+        <div style="font-size: 14px; color: #8a8a8a; margin-bottom: 15px;" data-i18n="recurring_desc">Programa cobros o movimientos automáticos como Spotify, tu salario o un ahorro fijo. Se reflejan en tus Ingresos, Egresos o Ahorros el día que elijas.</div>
+        <div class="settings-item" id="pushNotifyBtn" style="background:#eaf3ff; margin-bottom:12px;" onclick="activarNotificacionesPush()"><span class="label" style="color:#007aff; font-weight:700;">🔔 Activar notificaciones</span><span class="value" id="pushStatusLabel" style="font-size:12px;">Desactivadas</span></div>
+        <button class="chip add-chip" onclick="openNewRecurringWizard()" style="width:100%; justify-content:center; margin-bottom:15px; border:2px dashed #007aff; color:#007aff; background:#f0f7ff; padding:16px; font-size:16px; font-weight:800;" data-i18n="new_recurring">＋ Nuevo Cobro Recurrente</button>
+        <div id="recurringChargesList"></div>
+    </div>
+</div>
+
+<!-- NEW RECURRING CHARGE WIZARD (REDESIGN APPLE STYLE) -->
+<div class="modal-overlay" id="recurringWizardModal">
+    <div class="modal-content recurring-wizard-light" style="min-height: 60vh; padding: 25px 20px; background: #fff; color: #000;">
+        <div class="modal-header" style="margin-bottom: 5px;"><button class="close-modal" onclick="closeNewRecurringWizard()">✕</button></div>
+        <div style="font-size: 22px; font-weight: 800; margin-bottom: 15px;" id="recurringWizardTitle" data-i18n="new_recurring">Nuevo Cobro Recurrente</div>
+        
+        <div class="wizard-container">
+            <!-- Nombre y Emoji -->
+            <div class="input-group">
+                <input type="text" class="wizard-input" id="recurringName" placeholder="Nombre (ej: Spotify)..." data-i18n-placeholder="recurring_name_placeholder" onkeyup="suggestEmojis(this.value, 'recurringSuggestedEmojis', 'recurringEmojiDisplay')">
+                <div id="recurringSuggestedEmojis" class="suggested-emojis-container"></div>
+                <div class="wizard-emoji-row" style="margin-top: 8px;">
+                    <button class="wizard-emoji-btn" onclick="openEmojiPickerForRecurring()" data-i18n="choose_emoji">Elegir Emoji</button>
+                    <span class="wizard-emoji-display" id="recurringEmojiDisplay">🔁</span>
+                </div>
+            </div>
+
+            <!-- Modo: Recordatorio o Transacción real -->
+            <div class="section-title" data-i18n="recurring_mode">Modo</div>
+            <div class="save-sub-options">
+                <button class="save-sub-btn active" id="recurringModeReminder" onclick="setRecurringMode('reminder')" data-i18n="reminder_mode">🔔 Recordatorio</button>
+                <button class="save-sub-btn" id="recurringModeTransaction" onclick="setRecurringMode('transaction')" data-i18n="transaction_mode">💸 Transacción real</button>
+            </div>
+
+            <!-- Tipo: Diseño en línea + Ahorro ancho -->
+            <div class="section-title" data-i18n="movement_type">Tipo de Movimiento</div>
+            <div class="recurring-type-grid">
+                <div class="type-row-main">
+                    <button class="type-pill" id="recType_income" onclick="setRecurringTxType('income')" data-i18n="income">💵 Ingreso</button>
+                    <button class="type-pill" id="recType_expense" onclick="setRecurringTxType('expense')" data-i18n="expense">💸 Egreso</button>
+                </div>
+                <button class="type-pill full-width" id="recType_save" onclick="setRecurringTxType('save')" data-i18n="save">🏦 Ahorro</button>
+            </div>
+
+            <!-- Subtipo Ahorro -->
+            <div id="recurringSaveSubTypeRow" style="display:none; margin-top:10px;">
+                <div class="save-sub-options">
+                    <button class="save-sub-btn active" id="recSub_future" onclick="setRecurringSaveSubType('gastos_futuros')" data-i18n="future_savings">🔮 Ahorro a futuro</button>
+                    <button class="save-sub-btn" id="recSub_booking" onclick="setRecurringSaveSubType('booking')" data-i18n="booking">💰 Booking</button>
+                </div>
+            </div>
+
+            <!-- Categoría -->
+            <div class="section-title" data-i18n="category">Categoría</div>
+            <div class="scroll-row" id="recurringCategoryRow"></div>
+
+            <!-- Monto con Color Dinámico -->
+            <div class="section-title" data-i18n="amount">Monto</div>
+            <div class="amt-input-wrapper" style="margin-top:5px;">
+                <button class="curr-selector-clean" id="recurringCurrDisplay" onclick="toggleRecurringCurrency()">COP ▾</button>
+                <input type="text" inputmode="decimal" class="amt-input recurring-amt-dynamic" id="recurringAmount" placeholder="0.00" oninput="formatThousandInput(this)">
+            </div>
+
+            <!-- Medio de Pago -->
+            <div class="section-title" data-i18n="payment_method">Medio de Pago</div>
+            <div class="save-sub-options">
+                <button class="save-sub-btn" id="recurringPay_cash" onclick="setRecurringPayMethod('cash')" data-i18n="cash">💵 Efectivo</button>
+                <button class="save-sub-btn active" id="recurringPay_card" onclick="setRecurringPayMethod('card')" data-i18n="card">💳 Tarjeta</button>
+            </div>
+            <div class="scroll-row" id="recurringCardsRow" style="margin-top: 4px;"></div>
+
+            <!-- Fecha y Frecuencia (Estilo Apple) -->
+            <div class="section-title" data-i18n="scheduling">Programación</div>
+            <div class="apple-date-container">
+                <div class="apple-date-header" onclick="toggleRecurringDateSection()">
+                    <span id="recurringSelectedDateDisplay" data-i18n="select_date">📅 Seleccionar Fecha</span>
+                    <span class="arrow">›</span>
+                </div>
+                <div id="recurringDateSection" style="display:none; margin-top:10px; background:#f9f9f9; padding:15px; border-radius:16px;">
+                    <div class="calendar-nav">
+                        <button class="cal-nav-btn" onclick="calNavMonth(-1)">‹</button>
+                        <span class="cal-month-label" id="recurringCalMonthLabel"></span>
+                        <button class="cal-nav-btn" onclick="calNavMonth(1)">›</button>
+                    </div>
+                    <div class="calendar-weekdays"><span>D</span><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span></div>
+                    <div class="calendar-grid" id="recurringCalendarGrid"></div>
+                    
+                    <div class="section-title" style="margin-top:15px;" data-i18n="frequency">Frecuencia</div>
+                    <div class="freq-selector">
+                        <div class="freq-row">
+                            <span class="freq-label" data-i18n="every">Cada</span>
+                            <div class="freq-options">
+                                <button class="freq-chip" id="freq_week" onclick="setRecurringFreq('week')" data-i18n="week">Semana</button>
+                                <button class="freq-chip" id="freq_15days" onclick="setRecurringFreq('15days')" data-i18n="15days">15 Días</button>
+                                <button class="freq-chip" id="freq_month" onclick="setRecurringFreq('month')" data-i18n="month">Mes</button>
+                                <button class="freq-chip" id="freq_year" onclick="setRecurringFreq('year')" data-i18n="year">Año</button>
+                            </div>
+                        </div>
+                        <div class="freq-custom-row" id="recurringCustomFreqRow" style="display:none; align-items:center; gap:10px; margin-top:10px;">
+                            <span class="freq-label" data-i18n="custom">Personalizado:</span>
+                            <input type="number" min="1" class="wizard-input-small" id="recurringCustomValue" value="5">
+                            <select class="wizard-input-small" id="recurringCustomUnit">
+                                <option value="days" data-i18n="days">Días</option>
+                                <option value="weeks" data-i18n="weeks">Semanas</option>
+                                <option value="months" data-i18n="months">Meses</option>
+                                <option value="years" data-i18n="years">Años</option>
+                            </select>
+                        </div>
+                        <button class="chip custom-freq-btn" id="btnCustomFreq" onclick="setRecurringFreq('custom')" data-i18n="custom">⚙️ Personalizado</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recordatorios Anticipados -->
+            <div id="recurringNotifySection">
+            <div class="section-title" data-i18n="reminders">Avisos Anticipados</div>
+            <div class="apple-reminder-container">
+                <div class="reminder-header" onclick="toggleRecurringNotifyCalendar()">
+                    <span id="reminderStatusDisplay" data-i18n="no_reminders">🔔 Sin recordatorios</span>
+                    <span class="arrow">›</span>
+                </div>
+                <div id="recurringNotifyCalendarSection" style="display:none; margin-top:10px; background:#f9f9f9; padding:15px; border-radius:16px;">
+                    <div class="calendar-nav">
+                        <button class="cal-nav-btn" onclick="notifyCalNavMonth(-1)">‹</button>
+                        <span class="cal-month-label" id="recurringNotifyCalMonthLabel"></span>
+                        <button class="cal-nav-btn" onclick="notifyCalNavMonth(1)">›</button>
+                    </div>
+                    <div class="calendar-weekdays"><span>D</span><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span></div>
+                    <div class="calendar-grid" id="recurringNotifyCalendarGrid"></div>
+                    <div class="slider-hint" style="margin-top:10px;" data-i18n="reminder_hint">Toca hasta 3 días antes del cobro para activar avisos.</div>
+                    <div id="recurringNotifyDetailList" style="margin-top:10px;"></div>
+                </div>
+            </div>
+            </div>
+
+            <div class="wizard-actions">
+                <button class="wizard-create-btn" onclick="saveRecurringCharge()" data-i18n="save_recurring">✅ Guardar Cobro</button>
+                <button class="icon-action-btn delete full-width" id="btnDeleteRecurring" style="display:none; margin-top:10px; width:100%; border-radius:16px;" onclick="deleteRecurringCharge()" data-i18n="cancel_subscription">🗑️ Cancelar suscripción</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- EDIT CATEGORIES MODAL -->
+<div class="modal-overlay" id="editCategoriesModal">
+    <div class="modal-content" style="min-height: 70vh;">
+        <div class="modal-header"><button class="close-modal" onclick="closeEditCategories()">✕</button></div>
+        <div style="font-size: 24px; font-weight: 800; margin-bottom: 20px;" data-i18n="edit_categories">✏️ Edit Categories</div>
+        <!-- Pestañas de editar categorías -->
+<div class="edit-category-tabs" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
+  <button class="edit-category-tab active" data-type="expense" onclick="switchEditCategoryTab('expense')" style="padding:8px 18px; border-radius:20px; border:2px solid #ff4b4b; background:#fff; color:#ff4b4b; font-weight:700; font-size:14px; cursor:pointer;">💸 Egresos</button>
+  <button class="edit-category-tab" data-type="income" onclick="switchEditCategoryTab('income')" style="padding:8px 18px; border-radius:20px; border:2px solid #55874c; background:#fff; color:#55874c; font-weight:700; font-size:14px; cursor:pointer;">💵 Ingresos</button>
+  <button class="edit-category-tab" data-type="save" onclick="switchEditCategoryTab('save')" style="padding:8px 18px; border-radius:20px; border:2px solid #007aff; background:#fff; color:#007aff; font-weight:700; font-size:14px; cursor:pointer;">🏦 Ahorros</button>
+</div>
+<div class="edit-category-subtabs" id="editCategorySubTabs" style="display:none; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
+  <button class="edit-category-subtab active" data-sub="future" onclick="switchEditCategorySub('future')" style="padding:6px 14px; border-radius:16px; border:2px solid #007aff; background:#fff; color:#007aff; font-weight:600; font-size:12px; cursor:pointer;">🔮 Ahorro a futuro</button>
+  <button class="edit-category-subtab" data-sub="booking" onclick="switchEditCategorySub('booking')" style="padding:6px 14px; border-radius:16px; border:2px solid #007aff; background:#fff; color:#007aff; font-weight:600; font-size:12px; cursor:pointer;">💰 Booking</button>
+</div>
+        <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="categorySearchInput" placeholder="Search categories..." data-i18n-placeholder="search_categories" oninput="filterEditCategories()">
+        </div>
+        <div id="editCategoriesList" style="margin-top:10px;"></div>
+        <button class="chip add-chip" onclick="openNewCategoryWizardFromSettings()" style="width:100%; justify-content:center; margin-top:10px; border:2px dashed #b0b0b0; color:#8a8a8a; background:transparent; padding:12px;" data-i18n="new_category">＋ New Category</button>
+    </div>
+</div>
+
+<!-- NEW CATEGORY WIZARD MODAL (desde Settings) -->
+<div class="modal-overlay" id="newCategoryWizardModal">
+    <div class="modal-content" style="min-height: 50vh; padding: 25px 20px;">
+        <div class="modal-header" style="margin-bottom: 5px;"><button class="close-modal" onclick="closeNewCategoryWizard()">✕</button></div>
+        <div style="font-size: 22px; font-weight: 800; margin-bottom: 15px;" data-i18n="new_category">New Category</div>
+        <div class="wizard-container">
+            <div class="wizard-type-row-expense-income">
+                <button class="wizard-type-btn active-red" id="wizardBtnExpense" onclick="setWizardType('expense')" data-i18n="expense">- Expense</button>
+                <button class="wizard-type-btn" id="wizardBtnIncome" onclick="setWizardType('income')" data-i18n="income">+ Income</button>
+            </div>
+            <button class="wizard-type-btn-save" id="wizardBtnSave" onclick="setWizardType('save')" data-i18n="save">Save</button>
+            <div class="wizard-save-row" id="wizardSaveOptions" style="display:none;">
+                <button class="wizard-save-btn active" id="wizardBtnFuture" onclick="setWizardSaveType('gastos_futuros')" data-i18n="future_savings">🔮 Future Savings</button>
+                <button class="wizard-save-btn" id="wizardBtnBooking" onclick="setWizardSaveType('booking')" data-i18n="booking">💰 Booking</button>
+            </div>
+            <input type="text" class="wizard-input" id="wizardCategoryName" placeholder="Category name..." data-i18n-placeholder="category_name_placeholder" onkeyup="suggestEmojis(this.value, 'wizardSuggestedEmojis', 'wizardEmojiDisplay')">
+            <div id="wizardSuggestedEmojis" class="suggested-emojis-container"></div>
+            <div class="wizard-emoji-row" style="margin-top: 8px;">
+                <button class="wizard-emoji-btn" onclick="openEmojiPickerForWizard()" data-i18n="choose_emoji">Choose Emoji</button>
+                <span class="wizard-emoji-display" id="wizardEmojiDisplay">📌</span>
+            </div>
+            <div class="wizard-target-field" id="wizardTargetField">
+                <label data-i18n="target_amount_optional">Target Amount (optional):</label>
+                <input type="text" class="wizard-input" id="wizardTargetAmount" placeholder="0" style="margin-top:4px;" oninput="formatThousandInput(this)">
+            </div>
+            <button class="wizard-create-btn" onclick="saveWizardCategory()" data-i18n="create_category">✅ Create Category</button>
+        </div>
+    </div>
+</div>
+
+<!-- NEW CATEGORY WIZARD DESDE EL MODAL DE AGREGAR -->
+<div class="modal-overlay" id="newCategoryFromAddModal">
+    <div class="modal-content" style="min-height: 50vh; padding: 25px 20px;">
+        <div class="modal-header" style="margin-bottom: 5px;"><button class="close-modal" onclick="closeNewCategoryFromAdd()">✕</button></div>
+        <div style="font-size: 22px; font-weight: 800; margin-bottom: 15px;" data-i18n="new_category">New Category</div>
+        <div class="wizard-container">
+            <div class="wizard-type-row-expense-income">
+                <button class="wizard-type-btn active-red" id="addWizardBtnExpense" onclick="setAddWizardType('expense')" data-i18n="expense">- Expense</button>
+                <button class="wizard-type-btn" id="addWizardBtnIncome" onclick="setAddWizardType('income')" data-i18n="income">+ Income</button>
+            </div>
+            <button class="wizard-type-btn-save" id="addWizardBtnSave" onclick="setAddWizardType('save')" data-i18n="save">Save</button>
+            <div class="wizard-save-row" id="addWizardSaveOptions" style="display:none;">
+                <button class="wizard-save-btn active" id="addWizardBtnFuture" onclick="setAddWizardSaveType('gastos_futuros')" data-i18n="future_savings">🔮 Future Savings</button>
+                <button class="wizard-save-btn" id="addWizardBtnBooking" onclick="setAddWizardSaveType('booking')" data-i18n="booking">💰 Booking</button>
+            </div>
+            <input type="text" class="wizard-input" id="addWizardCategoryName" placeholder="Category name..." data-i18n-placeholder="category_name_placeholder" onkeyup="suggestEmojis(this.value, 'addWizardSuggestedEmojis', 'addWizardEmojiDisplay')">
+            <div id="addWizardSuggestedEmojis" class="suggested-emojis-container"></div>
+            <div class="wizard-emoji-row" style="margin-top: 8px;">
+                <button class="wizard-emoji-btn" onclick="openEmojiPickerForAddWizard()" data-i18n="choose_emoji">Choose Emoji</button>
+                <span class="wizard-emoji-display" id="addWizardEmojiDisplay">📌</span>
+            </div>
+            <div class="wizard-target-field" id="addWizardTargetField">
+                <label data-i18n="target_amount_optional">Target Amount (optional):</label>
+                <input type="text" class="wizard-input" id="addWizardTargetAmount" placeholder="0" style="margin-top:4px;" oninput="formatThousandInput(this)">
+            </div>
+            <button class="wizard-create-btn" onclick="saveAddWizardCategory()" data-i18n="create_category">✅ Create Category</button>
+        </div>
+    </div>
+</div>
+
+<!-- EDIT CARDS MODAL -->
+<div class="modal-overlay" id="editCardsModal">
+    <div class="modal-content" style="min-height: 40vh;">
+        <div class="modal-header"><button class="close-modal" onclick="closeEditCards()">✕</button></div>
+        <div style="font-size: 24px; font-weight: 800; margin-bottom: 20px;" data-i18n="edit_cards">💳 Edit Cards</div>
+        <div id="editCardsList"></div>
+        <button class="chip add-chip" onclick="openNewCardWizard()" style="width:100%; justify-content:center; margin-top:10px; border:2px dashed #b0b0b0; color:#8a8a8a; background:transparent; padding:12px;" data-i18n="new_card">＋ New Card</button>
+    </div>
+</div>
+
+<!-- NEW CARD WIZARD -->
+<div class="modal-overlay" id="newCardWizardModal">
+    <div class="modal-content" style="min-height: 30vh; padding: 25px 20px;">
+        <div class="modal-header" style="margin-bottom: 5px;"><button class="close-modal" onclick="closeNewCardWizard()">✕</button></div>
+        <div style="font-size: 22px; font-weight: 800; margin-bottom: 15px;" data-i18n="new_card">New Card</div>
+        <input type="text" class="wizard-input" id="wizardCardName" placeholder="Card name..." data-i18n-placeholder="card_name_placeholder" style="margin-bottom:15px;">
+        <button class="wizard-create-btn" onclick="saveWizardCard()" data-i18n="create_card">✅ Create Card</button>
+    </div>
+</div>
+
+<!-- EDIT CARD (name + color) -->
+<div class="modal-overlay" id="editCardModal">
+    <div class="modal-content" style="min-height: 35vh; padding: 25px 20px;">
+        <div class="modal-header" style="margin-bottom: 5px;"><button class="close-modal" onclick="closeEditCardModal()">✕</button></div>
+        <div style="font-size: 22px; font-weight: 800; margin-bottom: 15px;">✏️ Editar tarjeta</div>
+        <input type="text" class="wizard-input" id="editCardNameInput" placeholder="Nombre de la tarjeta..." style="margin-bottom:15px;">
+        <div style="margin: 0 0 15px 0;">
+            <div style="font-weight:600; font-size:14px; margin-bottom:8px;">Color de la tarjeta</div>
+            <div class="color-palette" id="editCardColorPalette"></div>
+        </div>
+        <button class="wizard-create-btn" onclick="saveCardEdit()">✅ Guardar cambios</button>
+    </div>
+</div>
+
+<!-- BUDGETS MODAL (con pestañas y monedas) -->
+<div class="modal-overlay" id="budgetsModal">
+    <div class="modal-content" style="min-height: 70vh;">
+        <div class="modal-header"><button class="close-modal" onclick="closeBudgets()">✕</button></div>
+        <div style="font-size: 24px; font-weight: 800; margin-bottom: 5px;" data-i18n="budgets">💰 Budgets</div>
+        <div style="font-size: 14px; color: #8a8a8a; margin-bottom: 15px;" data-i18n="budgets_desc">Set monthly limits for your expense, income and savings categories.</div>
+        
+        <!-- Pestañas de tipo -->
+        <div class="budget-tabs" style="display:flex; gap:8px; margin-bottom:15px; flex-wrap:wrap;">
+            <button class="budget-tab active" data-budget-type="expense" onclick="switchBudgetTab('expense')" data-i18n="expenses">💸 Egresos</button>
+            <button class="budget-tab" data-budget-type="income" onclick="switchBudgetTab('income')" data-i18n="incomes">💵 Ingresos</button>
+            <button class="budget-tab" data-budget-type="save" onclick="switchBudgetTab('save')" data-i18n="savings">🏦 Ahorros</button>
+        </div>
+        <div id="budgetSubTabs" style="display:none; gap:8px; margin-bottom:15px; flex-wrap:wrap;">
+            <button class="budget-subtab active" data-budget-sub="future" onclick="switchBudgetSubTab('future')" data-i18n="future_savings">🔮 Ahorro a futuro</button>
+            <button class="budget-subtab" data-budget-sub="booking" onclick="switchBudgetSubTab('booking')" data-i18n="booking">💰 Booking</button>
+        </div>
+
+        <div class="notification-slider-container">
+            <div class="slider-label">
+                <span data-i18n="notification_alert">🔔 Notification Alert</span>
+                <span class="slider-value" id="globalSliderDisplay">80%</span>
+            </div>
+            <input type="range" id="globalNotificationSlider" min="1" max="100" value="80" oninput="updateGlobalSlider(this.value)">
+            <div class="slider-hint" data-i18n="notification_hint">You'll be notified when a category exceeds this percentage of its budget</div>
+        </div>
+        <div id="budgetsList"></div>
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <button class="chip add-chip" onclick="saveAllBudgets()" style="flex:1; justify-content:center; background:#007aff; color:white; border-color:#007aff; border-style:solid;" data-i18n="save_all_budgets">💾 Save All Budgets</button>
+            <button class="chip add-chip" onclick="searchCategoriesInBudgets()" style="flex:0; border-style:solid; border-color:#eaeaea;">🔍</button>
+        </div>
+        <div id="budgetCategorySearch" style="display:none; margin-top:10px;">
+            <input type="text" id="budgetSearchInput" placeholder="Search categories..." oninput="filterBudgetCategories()" style="width:100%; padding:12px 16px; border-radius:14px; border:2px solid #eaeaea; font-size:16px; outline:none;">
+        </div>
+    </div>
+</div>
+
+<!-- FUTURE SAVINGS MODAL (con todas las categorías de ahorro, menú ⋮ y nuevo botón) -->
+<div class="modal-overlay" id="futureSavingsModal">
+    <div class="modal-content" style="min-height: 70vh;">
+        <div class="modal-header"><button class="close-modal" onclick="closeFutureSavings()">✕</button></div>
+        <div style="font-size: 24px; font-weight: 800; margin-bottom: 5px;" data-i18n="future_savings">🔮 Future Savings</div>
+        <div style="font-size: 14px; color: #8a8a8a; margin-bottom: 15px;" data-i18n="future_savings_desc">Manage your savings goals and targets (includes both Future Savings and Booking).</div>
+        <div class="notification-slider-container">
+            <div class="slider-label">
+                <span data-i18n="notification_alert">🔔 Notification Alert</span>
+                <span class="slider-value" id="futureGlobalSliderDisplay">80%</span>
+            </div>
+            <input type="range" id="futureGlobalNotificationSlider" min="1" max="100" value="80" oninput="updateFutureGlobalSlider(this.value)">
+            <div class="slider-hint" data-i18n="future_notification_hint">You'll be notified when a goal reaches this percentage</div>
+        </div>
+        <div id="futureSavingsList"></div>
+        <div class="future-completed-section" id="deletedFutureSection" style="display:none;">
+            <div class="section-label" style="border-bottom:2px dashed #d0d0d0; padding-bottom:6px;" data-i18n="completed_goals">📦 Completed Goals (deleted)</div>
+            <div id="deletedFutureList"></div>
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <button class="chip add-chip" onclick="saveAllFutureSavings()" style="flex:1; justify-content:center; background:#007aff; color:white; border-color:#007aff; border-style:solid;" data-i18n="save_targets">💾 Save All Targets</button>
+            <button class="chip add-chip" onclick="openNewSavingsCategoryWizard()" style="flex:1; justify-content:center; border:2px dashed #007aff; color:#007aff; background:#f0f7ff;" data-i18n="new_savings_category">＋ Nueva categoría de ahorro</button>
+        </div>
+    </div>
+</div>
+
+<!-- CUSTOM SLIDER PER CATEGORY -->
+<div class="modal-overlay" id="customSliderModal">
+    <div class="modal-content" style="min-height: 30vh;">
+        <div class="modal-header"><button class="close-modal" onclick="closeCustomSlider()">✕</button></div>
+        <div style="font-size: 20px; font-weight: 700; margin-bottom: 15px;" id="customSliderTitle" data-i18n="custom_alert">✏️ Custom Alert</div>
+        <div style="font-size: 14px; color: #8a8a8a; margin-bottom: 15px;" id="customSliderSubtitle" data-i18n="custom_alert_desc">Set custom notification percentage for this category</div>
+        <div class="notification-slider-container" style="margin: 0;">
+            <div class="slider-label">
+                <span id="customSliderCategoryName">Category</span>
+                <span class="slider-value" id="customSliderDisplay">80%</span>
+            </div>
+            <input type="range" id="customNotificationSlider" min="1" max="100" value="80" oninput="updateCustomSlider(this.value)">
+            <div class="slider-hint" data-i18n="drag_to_set">Drag to set custom alert percentage</div>
+        </div>
+        <div style="margin: 15px 0 5px 0;">
+            <div style="font-weight:600; font-size:14px; margin-bottom:8px;" data-i18n="choose_color">Choose a color (will darken from 80% to 100%):</div>
+            <div class="color-palette" id="colorPalette"></div>
+        </div>
+        <button class="chip" onclick="saveCustomSlider()" style="width:100%; justify-content:center; background:#007aff; color:white; border-color:#007aff; margin-top:10px; padding:14px;" data-i18n="save_custom_alert">💾 Save Custom Alert</button>
+    </div>
+</div>
+
+<!-- EMOJI PICKER MODAL -->
+<div class="modal-overlay" id="emojiPickerModal">
+    <div class="modal-content" style="min-height: 50vh;">
+        <div class="modal-header"><button class="close-modal" onclick="closeEmojiPicker()">✕</button></div>
+        <div style="font-size: 20px; font-weight: 700; margin-bottom: 15px;" data-i18n="choose_emoji_title">Choose an emoji</div>
+        <div class="emoji-picker" id="emojiPickerGrid"></div>
+    </div>
+</div>
+
+<!-- CUSTOM ALERT MODAL -->
+<div class="custom-alert-overlay" id="customAlertModal">
+    <div class="custom-alert-box">
+        <div class="alert-kind-badge hidden" id="alertBadge">⚠️ Advertencia</div>
+        <div class="emoji-big" id="alertEmoji">🎉</div>
+        <div class="title" id="alertTitle">Felicidades</div>
+        <div class="desc" id="alertDesc">Has alcanzado tu meta</div>
+        <button class="btn-ok" onclick="closeCustomAlert()" data-i18n="accept">Aceptar</button>
+    </div>
+</div>
+
+<!-- FASE 2: PROMPT DE TEXTO GENÉRICO (nombre de tablero, compartir por correo, etc.) -->
+<div class="custom-alert-overlay" id="textPromptModal">
+    <div class="custom-alert-box">
+        <div class="emoji-big" id="textPromptEmoji">✏️</div>
+        <div class="title" id="textPromptTitle" data-i18n="name">Nombre</div>
+        <input type="text" id="textPromptInput" style="width:100%; box-sizing:border-box; margin:15px 0; padding:14px 16px; border-radius:14px; border:2px solid #eaeaea; font-size:16px; font-weight:600;" placeholder="">
+        <div id="textPromptError" style="color:#ff4b4b; font-size:13px; font-weight:600; margin-bottom:10px; min-height:16px;"></div>
+        <div style="display:flex; gap:10px;">
+            <button class="btn-ok" style="background:#eee; color:#333; flex:1; padding:12px 0;" onclick="closeTextPrompt()" data-i18n="cancel">Cancelar</button>
+            <button class="btn-ok" id="textPromptConfirmBtn" style="flex:1; padding:12px 0;" onclick="submitTextPrompt()" data-i18n="save">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<!-- FASE 2: CONFIRMACIÓN GENÉRICA (eliminar tablero, etc.) -->
+<div class="custom-alert-overlay" id="customConfirmModal">
+    <div class="custom-alert-box">
+        <div class="emoji-big" id="confirmEmoji">⚠️</div>
+        <div class="title" id="confirmTitle" data-i18n="are_you_sure">¿Estás seguro?</div>
+        <div class="desc" id="confirmDesc" data-i18n="action_irreversible">Esta acción no se puede deshacer.</div>
+        <div style="display:flex; gap:10px; margin-top:15px;">
+            <button class="btn-ok" style="background:#eee; color:#333; flex:1; padding:12px 0;" onclick="closeCustomConfirm()" data-i18n="cancel">Cancelar</button>
+            <button class="btn-ok" id="confirmActionBtn" style="flex:1; padding:12px 0; background:#ff4b4b;" onclick="runCustomConfirmAction()" data-i18n="yes_continue">Sí, continuar</button>
+        </div>
+    </div>
+</div>
+
+<!-- CAMBIO DE MES: BALANCE NEGATIVO -->
+<div class="custom-alert-overlay" id="monthRolloverModal">
+    <div class="custom-alert-box">
+        <div class="emoji-big">📅</div>
+        <div class="title" data-i18n="month_changed">El mes ha cambiado</div>
+        <div class="desc" id="monthRolloverDesc" data-i18n="rollover_desc">Tu balance del mes anterior fue negativo. ¿Quieres empezar con tu balance actual o desde cero?</div>
+        <div style="display:flex; flex-direction:column; gap:10px; margin-top:6px;">
+            <button class="btn-ok" onclick="chooseRolloverOption('current')" style="padding:12px 20px;" data-i18n="start_current">Empezar con mi balance actual</button>
+            <button class="btn-ok" onclick="chooseRolloverOption('zero')" style="padding:12px 20px; background:#8a8a8a;" data-i18n="start_zero">Empezar desde cero</button>
+        </div>
+    </div>
+</div>
+
+<!-- MENÚ DE OPCIONES PARA CATEGORÍAS COMPLETADAS (deleted goals) -->
+<div class="modal-overlay" id="deletedGoalMenuModal">
+    <div class="custom-alert-box completed-menu-box">
+        <div class="menu-title" data-i18n="completed_options">📦 Opciones de meta completada</div>
+        <div class="menu-sub" id="deletedGoalMenuName" data-i18n="select_action">Selecciona una acción</div>
+        <button class="menu-btn danger" onclick="deletePermanently()" data-i18n="delete_permanently">🗑️ Borrar definitivamente</button>
+        <button class="menu-btn warning" onclick="restoreFromZero()" data-i18n="restore_zero">🔄 Rehacer desde cero</button>
+        <button class="menu-btn success" onclick="restoreToFull()" data-i18n="restore_full">🔄 Rehacer al 100%</button>
+        <button class="menu-btn cancel" onclick="closeDeletedGoalMenu()" data-i18n="cancel">Cancelar</button>
+    </div>
+</div>
+
+<!-- MODAL PARA EDITAR NOMBRE Y EMOJI DE CATEGORÍA DE AHORRO (⋮) -->
+<div class="modal-overlay" id="editSavingsCategoryModal">
+    <div class="modal-content" style="min-height: 40vh; padding: 25px 20px;">
+        <div class="modal-header" style="margin-bottom: 5px;"><button class="close-modal" onclick="closeEditSavingsCategory()">✕</button></div>
+        <div style="font-size: 22px; font-weight: 800; margin-bottom: 15px;" data-i18n="edit_savings_category">✏️ Editar categoría de ahorro</div>
+        <div class="wizard-container">
+            <input type="text" class="wizard-input" id="editSavingsName" placeholder="Nombre..." data-i18n-placeholder="category_name_placeholder" style="margin-bottom:8px;">
+            <div class="wizard-emoji-row">
+                <button class="wizard-emoji-btn" onclick="openEmojiPickerForSavingsEdit()" data-i18n="choose_emoji">Elegir Emoji</button>
+                <span class="wizard-emoji-display" id="editSavingsEmojiDisplay">📌</span>
+            </div>
+            <div style="margin: 12px 0 5px 0;">
+                <div style="font-weight:600; font-size:14px; margin-bottom:8px;">Color del ícono</div>
+                <div class="color-palette" id="editIconColorPalette"></div>
+            </div>
+            <button class="wizard-create-btn" onclick="saveSavingsCategoryEdit()" data-i18n="save_changes">✅ Guardar cambios</button>
+        </div>
+        <input type="hidden" id="editSavingsCategoryId">
+    </div>
+</div>
+
+<!-- SCRIPTS EXTERNOS -->
+
+</body>
+</html>
