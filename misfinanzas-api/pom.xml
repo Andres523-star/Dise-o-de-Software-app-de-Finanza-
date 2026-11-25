@@ -18,7 +18,7 @@
     <description>Mis Finanzas: implementación representativa en Java (Spring Boot + MongoDB) del diseño de la app</description>
 
     <properties>
-        <java.version>25</java.version>
+        <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 

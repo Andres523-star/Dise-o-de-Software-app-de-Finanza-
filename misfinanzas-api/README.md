@@ -1,6 +1,6 @@
 # misfinanzas-api: implementación representativa en Java
 
-API REST de **Mis Finanzas** hecha con **Java 25 + Spring Boot 3.5 + MongoDB**.
+API REST de **Mis Finanzas** hecha con **Java 17 + Spring Boot 3.5 + MongoDB**.
 Sirve para validar el diseño: las clases del **diagrama 3 (vista lógica)** y las capas del
 **diagrama 2 (vista funcional)** están implementadas tal cual en código.
 
@@ -33,7 +33,7 @@ TransaccionController → GestorTransacciones → TransaccionFactory crea un Egr
 
 ## Cómo ejecutarla
 
-**Requisito:** Java 25 o superior. La forma más fácil es **IntelliJ IDEA** (trae Maven incluido).
+**Requisito:** Java 17 o superior. La forma más fácil es **IntelliJ IDEA** (trae Maven incluido).
 
 1. En IntelliJ: **File → Open** y elige la carpeta `misfinanzas-api`.
 2. Espera a que descargue las dependencias (barra de abajo).
