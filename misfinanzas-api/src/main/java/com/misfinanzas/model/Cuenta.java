@@ -34,6 +34,7 @@ public class Cuenta {
     }
 
     /** Verifica que haya dinero suficiente antes de apartarlo (ahorro o abono a una meta). */
+    // 📌 PRESENTACION 12 ¿DÓNDE SE VALIDA QUE HAYA PLATA? (Experto en Información)
     public void verificarFondos(double monto) {
         if (monto > saldo) {
             throw new ReglaNegocioException("No tienes esa cantidad disponible en " + nombre

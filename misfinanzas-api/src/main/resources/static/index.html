@@ -80,13 +80,15 @@
 
   <section class="card">
     <h2>Registrar movimiento</h2>
+    <!-- 📌 PRESENTACION 01 ¿DÓNDE ESTÁN LOS BOTONES? Gasto / Ingreso / Ahorro -->
     <div class="tipos">
       <button type="button" data-t="EGRESO" class="on">– Gasto</button>
       <button type="button" data-t="INGRESO">+ Ingreso</button>
       <button type="button" data-t="AHORRO">Ahorro</button>
     </div>
+    <!-- 📌 PRESENTACION 02 ¿DÓNDE ESTÁ EL FORMULARIO? monto, categoría, cuenta y Guardar -->
     <form id="form">
-      <input id="monto" type="number" placeholder="Monto (COP)" min="0" step="any">
+      <input id="monto" type="text" inputmode="numeric" placeholder="Monto (COP) ej: 20.000" autocomplete="off">
       <select id="categoria"></select>
       <select id="cuenta"></select>
       <input id="descripcion" placeholder="Descripción (opcional)">
@@ -110,7 +112,7 @@
   <section class="card">
     <h2>Conversor de divisas (TRM)</h2>
     <div class="fila">
-      <input id="dv-monto" type="number" value="100" step="any">
+      <input id="dv-monto" type="text" inputmode="numeric" value="100" autocomplete="off">
       <select id="dv-de"><option>USD</option><option>COP</option><option>EUR</option></select>
       <select id="dv-a"><option>COP</option><option>USD</option><option>EUR</option></select>
     </div>
@@ -127,10 +129,18 @@
 <script>
   // El frontend llama a la API REST de Spring Boot (capa Controller) con fetch.
   const TABLERO = "tablero-demo";
+  // 📌 PRESENTACION 03 ¿DÓNDE SE CONECTA EL FRONTEND CON EL BACKEND? (API REST)
   const API = "/api";
   let tipo = "EGRESO", categorias = [], cuentas = [];
   const $ = (id) => document.getElementById(id);
   const cop = (n) => "$" + Math.round(n).toLocaleString("es-CO");
+  // 📌 PRESENTACION 02 ¿CÓMO SE PONEN LOS PUNTOS DE MILES? 20000 → 20.000 mientras escribes
+  const soloNumero = (txt) => txt.replace(/\D/g, "");
+  const conPuntos = (input) => {
+    const n = soloNumero(input.value);
+    input.value = n === "" ? "" : Number(n).toLocaleString("es-CO");
+  };
+  document.querySelectorAll("#monto, #dv-monto").forEach((i) => i.addEventListener("input", () => conPuntos(i)));
 
   async function api(ruta, opciones) {
     const r = await fetch(API + ruta, opciones);
@@ -153,6 +163,7 @@
       .map(c => `<option value="${c.id}">${c.icono} ${c.nombre}</option>`).join("");
   }
 
+  // 📌 PRESENTACION 04 ¿CÓMO SE MUESTRAN LOS DATOS? pide todo al backend (GET)
   async function cargar() {
     const hoy = new Date();
     $("mes").textContent = hoy.toLocaleDateString("es-CO", { month: "long", year: "numeric" });
@@ -202,13 +213,14 @@
     b.classList.add("on"); tipo = b.dataset.t; llenarCategorias();
   });
 
+  // 📌 PRESENTACION 05 ¿QUÉ PASA AL DAR GUARDAR? envía el movimiento al backend (POST)
   $("form").onsubmit = async (e) => {
     e.preventDefault();
     try {
       await api(`/tableros/${TABLERO}/transacciones`, {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          tipo, monto: $("monto").value === "" ? null : Number($("monto").value),
+          tipo, monto: soloNumero($("monto").value) === "" ? null : Number(soloNumero($("monto").value)),
           cuentaId: $("cuenta").value, categoriaId: $("categoria").value,
           descripcion: $("descripcion").value
         })
@@ -219,15 +231,17 @@
     } catch (err) { mensaje("⚠️ " + err.message, false); }
   };
 
+  // 📌 PRESENTACION 14 ¿CÓMO SE ELIMINA? frontend (DELETE)
   window.eliminar = async (id) => {
     if (!confirm("¿Eliminar este movimiento?")) return;
     await api(`/transacciones/${id}`, { method: "DELETE" });
     await cargar();
   };
 
+  // 📌 PRESENTACION 16 ¿DÓNDE ESTÁ LA TRM? frontend del convertidor
   $("dv-btn").onclick = async () => {
     try {
-      const r = await api(`/divisas/convertir?monto=${$("dv-monto").value}&de=${$("dv-de").value}&a=${$("dv-a").value}`);
+      const r = await api(`/divisas/convertir?monto=${soloNumero($("dv-monto").value)}&de=${$("dv-de").value}&a=${$("dv-a").value}`);
       $("dv-res").textContent = `${r.monto} ${r.de} = ${r.resultado.toLocaleString("es-CO")} ${r.a}`;
     } catch (err) { $("dv-res").textContent = "⚠️ " + err.message; }
   };

@@ -61,6 +61,7 @@ public final class Solicitudes {
     }
 
     /** Registrar o editar un ingreso, gasto o ahorro. */
+    // 📌 PRESENTACION 07 ¿DÓNDE SE VALIDA EL MONTO? @Positive → error 400
     public record RegistrarTransaccion(
             @NotNull(message = "El tipo es obligatorio (INGRESO, EGRESO o AHORRO)") TipoTransaccion tipo,
             @NotNull(message = "El monto es obligatorio") @Positive(message = "El monto debe ser mayor a cero") Double monto,

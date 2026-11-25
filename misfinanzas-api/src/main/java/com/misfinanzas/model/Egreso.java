@@ -20,6 +20,7 @@ public class Egreso extends Transaccion {
     }
 
     @Override
+    // 📌 PRESENTACION 10 ¿DÓNDE SE RESTA UN GASTO? (polimorfismo)
     public void aplicar(Cuenta cuenta) {
         cuenta.actualizarSaldo(-getMonto());
     }

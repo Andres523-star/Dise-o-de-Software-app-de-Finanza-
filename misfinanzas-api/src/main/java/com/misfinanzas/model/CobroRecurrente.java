@@ -39,6 +39,7 @@ public class CobroRecurrente {
     }
 
     /** Crea la transacción de este periodo y calcula la próxima fecha de cobro. */
+    // 📌 PRESENTACION 18 ¿DÓNDE ESTÁN LOS COBROS RECURRENTES? PATRÓN CREADOR
     public Transaccion generarTransaccion() {
         LocalDate fecha = proximaFecha;
         Transaccion t = esIngreso

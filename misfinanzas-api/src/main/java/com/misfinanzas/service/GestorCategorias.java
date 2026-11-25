@@ -27,6 +27,7 @@ public class GestorCategorias implements IGestorCategorias {
     }
 
     @Override
+    // 📌 PRESENTACION 15 ¿DÓNDE SE CREA UNA CATEGORÍA?
     public Categoria crear(String tableroId, CrearCategoria s) {
         tableros.buscar(tableroId);
         String icono = s.icono() == null || s.icono().isBlank() ? "📌" : s.icono();

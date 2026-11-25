@@ -64,7 +64,7 @@ async function avisarSiCambio(cache, req, viejo, nuevo) {
   } catch (e) {}
 }
 
-// 📌 PRESENTACION 8 - SIN INTERNET: responde con lo guardado en caché
+// 📌 PWA 8 - SIN INTERNET: responde con lo guardado en caché
 async function cacheConRevalidacion(e, req, clave) {
   const cache = await caches.open(CACHE);
   const guardado = await cache.match(clave || req);
@@ -81,7 +81,7 @@ async function cacheConRevalidacion(e, req, clave) {
   return (await red) || Response.error();
 }
 
-// 📌 PRESENTACION 8 - SIN INTERNET: el Service Worker intercepta las peticiones
+// 📌 PWA 8 - SIN INTERNET: el Service Worker intercepta las peticiones
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;

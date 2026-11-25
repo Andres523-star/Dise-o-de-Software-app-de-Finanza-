@@ -9,6 +9,7 @@ import org.springframework.data.mongodb.repository.Query;
 import com.misfinanzas.model.Transaccion;
 
 /** ITransaccionRepository del diagrama 2. Devuelve Ingreso, Egreso o Ahorro según lo guardado. */
+// 📌 PRESENTACION 13 ¿DÓNDE SE GUARDA? Repository → MongoDB (base de datos)
 public interface TransaccionRepository extends MongoRepository<Transaccion, String> {
 
     List<Transaccion> findByTableroIdOrderByFechaDesc(String tableroId);

@@ -30,6 +30,7 @@ public class TransaccionController {
         this.gestor = gestor;
     }
 
+    // 📌 PRESENTACION 06 ¿DÓNDE LLEGA LA PETICIÓN AL BACKEND? (Controller)
     @PostMapping("/api/tableros/{tableroId}/transacciones")
     @ResponseStatus(HttpStatus.CREATED)
     public TransaccionResponse registrar(@PathVariable("tableroId") String tableroId,

@@ -17,6 +17,7 @@ public class Ingreso extends Transaccion {
     }
 
     @Override
+    // 📌 PRESENTACION 11 ¿DÓNDE SE SUMA UN INGRESO? (polimorfismo)
     public void aplicar(Cuenta cuenta) {
         cuenta.actualizarSaldo(getMonto());
     }

@@ -49,6 +49,7 @@ public class Presupuesto {
      * Devuelve los umbrales que se acaban de superar y que todavía no se habían avisado.
      * Cada alerta sale una sola vez por mes y categoría.
      */
+    // 📌 PRESENTACION 17 ¿DÓNDE ESTÁN LAS ALERTAS DE PRESUPUESTO? 80 %, 90 %, 100 %
     public List<Integer> evaluarUmbral() {
         List<Integer> nuevos = new ArrayList<>();
         double porcentaje = porcentajeConsumido();

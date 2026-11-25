@@ -44,6 +44,7 @@ public class GestorTransacciones implements IGestorTransacciones {
     }
 
     @Override
+    // 📌 PRESENTACION 08 ¿DÓNDE ESTÁ LA LÓGICA? registra ingreso / gasto (Service)
     public TransaccionResponse registrar(String tableroId, RegistrarTransaccion s) {
         tableros.buscar(tableroId);
         validarCategoria(tableroId, s.categoriaId(), s.tipo());
@@ -53,6 +54,7 @@ public class GestorTransacciones implements IGestorTransacciones {
     }
 
     @Override
+    // 📌 PRESENTACION 13 ¿DÓNDE SE GUARDA? aplica a la cuenta y guarda en MongoDB
     public TransaccionResponse registrar(Transaccion t) {
         Cuenta cuenta = cuentas.buscar(t.getTableroId(), t.getCuentaId());
         t.aplicar(cuenta);
@@ -93,6 +95,7 @@ public class GestorTransacciones implements IGestorTransacciones {
     }
 
     @Override
+    // 📌 PRESENTACION 14 ¿CÓMO SE ELIMINA? devuelve el dinero a la cuenta y borra
     public void eliminar(String id) {
         Transaccion t = buscar(id);
         Cuenta cuenta = cuentas.buscar(t.getTableroId(), t.getCuentaId());

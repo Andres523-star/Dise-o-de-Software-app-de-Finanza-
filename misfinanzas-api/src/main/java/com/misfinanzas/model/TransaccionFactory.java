@@ -11,6 +11,7 @@ public final class TransaccionFactory {
     private TransaccionFactory() {
     }
 
+    // 📌 PRESENTACION 09 ¿DÓNDE SE CREA LA TRANSACCIÓN? PATRÓN FÁBRICA
     public static Transaccion crear(TipoTransaccion tipo, String tableroId, String cuentaId, String categoriaId,
                                     double monto, LocalDate fecha, String descripcion, String detalle) {
         LocalDate dia = fecha != null ? fecha : LocalDate.now();

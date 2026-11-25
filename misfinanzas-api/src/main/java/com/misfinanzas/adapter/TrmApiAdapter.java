@@ -36,6 +36,7 @@ public class TrmApiAdapter implements IProveedorDivisas {
     }
 
     @Override
+    // 📌 PRESENTACION 16 ¿DÓNDE ESTÁ LA TRM? se conecta a la API de divisas (Adaptador)
     public Map<String, Double> obtenerTasas(String monedaBase) {
         String base = monedaBase.trim().toUpperCase();
         JsonNode cuerpo;

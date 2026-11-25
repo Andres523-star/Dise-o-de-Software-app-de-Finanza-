@@ -453,7 +453,7 @@ var pct = hasBudget ? getCategoryPct(c) : 0;
   scheduleGuardarEnFirebase(); // FASE 1: cada vez que la app se re-renderiza (agregar tx, categoría, tarjeta, cobro recurrente, cambiar idioma/moneda, etc.) se programa un guardado completo en la nube.
 };
 
-// 📌 PRESENTACION 7 - ALERTAS DE PRESUPUESTO: aquí empieza
+// 📌 PWA 7 - ALERTAS DE PRESUPUESTO: aquí empieza
 const checkSavingsAlerts = function() {
   allCategories.forEach(function(cat) {
     if (deletedCategories[cat.id]) return;
@@ -474,7 +474,7 @@ const checkSavingsAlerts = function() {
     }
     var milestones = notifiedMilestones[key];
 
-    // 📌 PRESENTACION 7 - Revisa los umbrales 80%, 90% y 100%
+    // 📌 PWA 7 - Revisa los umbrales 80%, 90% y 100%
     [80, 90, 100].forEach(function(tier) {
       if (pct >= tier && !milestones[tier]) {
         milestones[tier] = true;
