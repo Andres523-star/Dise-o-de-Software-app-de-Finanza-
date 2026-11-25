@@ -46,6 +46,7 @@ function recoRateFallbackDesdeApp(from, to) {
 }
 
 // ===== Tasa de HOY: @fawazahmed0/currency-api@latest =====
+//  TRM: trae la tasa de HOY (Analista Financiero)
 function recoFetchLatest(from, to) {
   if (from === to) return Promise.resolve(1);
   var url = 'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/' + from.toLowerCase() + '.json';
@@ -110,6 +111,7 @@ function recoFetchRateDia(from, to, fechaStr) {
 
 // Histórico de 90 días. Si tarda más de 5 segundos, se usan solo los
 // últimos 30 días para no dejar a la persona esperando.
+// 📌 PRESENTACION 5 - TRM: trae el historial de 90 días
 function recoFetchHistory90(from, to) {
   if (from === to) return Promise.resolve(null);
   var fechas90 = recoUltimasFechas(RECO_DAYS_TOTAL);
@@ -138,6 +140,7 @@ function recoPercentil(sortedArr, p) {
   return sortedArr[lo] * (1 - w) + sortedArr[hi] * w;
 }
 
+// 📌 PRESENTACION 5 - TRM: semáforo verde / amarillo / rojo
 function recoSemaforo(current, p25, p75, mode) {
   // En "vender" la logica es inversa: precio ALTO es favorable (mas pesos
   // por cada dolar vendido), precio BAJO es desfavorable.

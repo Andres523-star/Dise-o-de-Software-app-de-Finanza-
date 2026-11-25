@@ -1,0 +1,162 @@
+{
+  "info": {
+    "name": "Mis Finanzas – API",
+    "description": "Pruebas de la app Mis Finanzas con Postman.\n1) Pega tu idToken y boardId en las Variables de la colección.\n2) Ejecuta las peticiones. Con la app abierta, los cambios se ven al instante (tiempo real).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{idToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "idToken",
+      "value": "PEGA_AQUI_TU_TOKEN"
+    },
+    {
+      "key": "boardId",
+      "value": "PEGA_AQUI_EL_ID_DEL_TABLERO"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Tasas de cambio (API externa de divisas)",
+      "request": {
+        "method": "GET",
+        "auth": {
+          "type": "noauth"
+        },
+        "description": "API que usa el Analista Financiero. No necesita token.",
+        "url": "https://open.er-api.com/v6/latest/USD"
+      }
+    },
+    {
+      "name": "2. Ver tablero (nombre, idioma, moneda)",
+      "request": {
+        "method": "GET",
+        "url": "https://firestore.googleapis.com/v1/projects/mis-finanzas-app-2d508/databases/(default)/documents/tableros/{{boardId}}?mask.fieldPaths=name&mask.fieldPaths=data.language&mask.fieldPaths=data.primaryCurrency&mask.fieldPaths=data.secondaryCurrencies"
+      }
+    },
+    {
+      "name": "3. Cambiar idioma a Español",
+      "request": {
+        "method": "PATCH",
+        "description": "Cambia el idioma de la app a español.",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fields\": {\n    \"data\": {\n      \"mapValue\": {\n        \"fields\": {\n          \"language\": {\n            \"stringValue\": \"es\"\n          }\n        }\n      }\n    }\n  }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "https://firestore.googleapis.com/v1/projects/mis-finanzas-app-2d508/databases/(default)/documents/tableros/{{boardId}}?updateMask.fieldPaths=data.language"
+      }
+    },
+    {
+      "name": "4. Cambiar idioma a Inglés",
+      "request": {
+        "method": "PATCH",
+        "description": "Cambia el idioma de la app a inglés.",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fields\": {\n    \"data\": {\n      \"mapValue\": {\n        \"fields\": {\n          \"language\": {\n            \"stringValue\": \"en\"\n          }\n        }\n      }\n    }\n  }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "https://firestore.googleapis.com/v1/projects/mis-finanzas-app-2d508/databases/(default)/documents/tableros/{{boardId}}?updateMask.fieldPaths=data.language"
+      }
+    },
+    {
+      "name": "5. Cambiar moneda principal a USD",
+      "request": {
+        "method": "PATCH",
+        "description": "Moneda principal USD, secundaria COP.",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fields\": {\n    \"data\": {\n      \"mapValue\": {\n        \"fields\": {\n          \"primaryCurrency\": {\n            \"stringValue\": \"USD\"\n          },\n          \"secondaryCurrencies\": {\n            \"arrayValue\": {\n              \"values\": [\n                {\n                  \"stringValue\": \"COP\"\n                }\n              ]\n            }\n          },\n          \"isUSD\": {\n            \"booleanValue\": true\n          }\n        }\n      }\n    }\n  }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "https://firestore.googleapis.com/v1/projects/mis-finanzas-app-2d508/databases/(default)/documents/tableros/{{boardId}}?updateMask.fieldPaths=data.primaryCurrency&updateMask.fieldPaths=data.secondaryCurrencies&updateMask.fieldPaths=data.isUSD"
+      }
+    },
+    {
+      "name": "6. Cambiar moneda principal a COP",
+      "request": {
+        "method": "PATCH",
+        "description": "Moneda principal COP, secundaria USD.",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fields\": {\n    \"data\": {\n      \"mapValue\": {\n        \"fields\": {\n          \"primaryCurrency\": {\n            \"stringValue\": \"COP\"\n          },\n          \"secondaryCurrencies\": {\n            \"arrayValue\": {\n              \"values\": [\n                {\n                  \"stringValue\": \"USD\"\n                }\n              ]\n            }\n          },\n          \"isUSD\": {\n            \"booleanValue\": false\n          }\n        }\n      }\n    }\n  }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "https://firestore.googleapis.com/v1/projects/mis-finanzas-app-2d508/databases/(default)/documents/tableros/{{boardId}}?updateMask.fieldPaths=data.primaryCurrency&updateMask.fieldPaths=data.secondaryCurrencies&updateMask.fieldPaths=data.isUSD"
+      }
+    },
+    {
+      "name": "7. Cambiar moneda principal a EUR",
+      "request": {
+        "method": "PATCH",
+        "description": "Moneda principal EUR, secundaria COP.",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fields\": {\n    \"data\": {\n      \"mapValue\": {\n        \"fields\": {\n          \"primaryCurrency\": {\n            \"stringValue\": \"EUR\"\n          },\n          \"secondaryCurrencies\": {\n            \"arrayValue\": {\n              \"values\": [\n                {\n                  \"stringValue\": \"COP\"\n                }\n              ]\n            }\n          },\n          \"isUSD\": {\n            \"booleanValue\": false\n          }\n        }\n      }\n    }\n  }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "https://firestore.googleapis.com/v1/projects/mis-finanzas-app-2d508/databases/(default)/documents/tableros/{{boardId}}?updateMask.fieldPaths=data.primaryCurrency&updateMask.fieldPaths=data.secondaryCurrencies&updateMask.fieldPaths=data.isUSD"
+      }
+    }
+  ]
+}

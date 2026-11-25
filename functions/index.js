@@ -72,6 +72,7 @@ function nextDueOnOrAfter(rc, todayISO) {
   return due;
 }
 
+// 📌 PRESENTACION 9 - NOTIFICACIONES PUSH: función en la nube que corre sola por horario
 exports.checkRecurringReminders = onSchedule(
   { schedule: 'every day 08:00', timeZone: 'America/Bogota' },
   async () => {
@@ -119,6 +120,7 @@ exports.checkRecurringReminders = onSchedule(
       if (tokens.length === 0) continue;
 
       for (const msg of mensajes) {
+        // 📌 PRESENTACION 9 - Aquí se envía la notificación push
         await messaging.sendEachForMulticast({
           tokens: tokens,
           notification: { title: msg.title, body: msg.body }

@@ -486,6 +486,7 @@ try { applyTranslations(); } catch (e) {} // traduce el onboarding (welcome, q1-
 
 const saveAppStateToStorage = function() {
   try {
+    // 📌 PRESENTACION 4 - COPIA LOCAL en el celular (localStorage) para usar sin internet
     localStorage.setItem('transactions_v29', JSON.stringify(transactions));
     localStorage.setItem('allCategories_v29', JSON.stringify(allCategories));
     localStorage.setItem('myCards_v29', JSON.stringify(myCards));

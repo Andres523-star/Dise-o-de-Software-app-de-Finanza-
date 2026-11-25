@@ -1,32 +1,18 @@
-// ===== FASE 2: SISTEMA DE MÚLTIPLES TABLEROS =====
-// Antes había UN SOLO documento por usuario en "usuarios/{uid}" con todos sus
-// datos. Ahora cada usuario puede tener VARIOS tableros. Estructura nueva:
-//
-//   usuarios/{uid}      -> { email, authMethod, boardIds:[...], activeBoardId }
-//   tableros/{boardId}  -> { name, ownerUid, members:[uids], pendingShares:[correos],
-//                             createdAt, data:{ ...todo lo que antes vivía en usuarios/{uid} } }
-//
-// "members" son los uids que pueden ver/editar ese tablero (dueño + a quien
-// se le comparta). "pendingShares" son correos invitados que todavía no han
-// iniciado sesión en la app (ver revisarInvitacionesPendientes).
-//
-// Todo sigue siendo en tiempo real (onSnapshot), igual que en la Fase 1 —
-// eso no se pierde, solo cambia DÓNDE vive cada cosa.
 
 let currentBoardId = null;    // tablero actualmente abierto
 let userBoards = [];          // tableros a los que el usuario tiene acceso (propios + compartidos)
 let userEmail = null;
 let userAuthMethod = 'local'; // 'google' | 'apple' | 'local'
 
-let _tableroUnsubscribe = null;     // listener en tiempo real del tablero activo
+// listener en tiempo real del tablero activo
+let _tableroUnsubscribe = null;     
 let _boardsListUnsubscribe = null;  // listener en tiempo real de la LISTA de tableros
 
 function getUsuarioDocRef(uid) { return db.collection('usuarios').doc(uid); }
 function getTableroDocRef(id) { return db.collection('tableros').doc(id); }
 
-// Paquete de datos "en blanco" para un tablero recién creado.
 function crearPaqueteDeDatosVacio() {
-  // Colores por defecto para las tarjetas iniciales
+
   const defaultCardColors = {
     'Nu': '#1a73e8',
     'Nequi': '#7c3aed',
@@ -52,7 +38,7 @@ function crearPaqueteDeDatosVacio() {
   };
 }
 
-// ===== EMPAQUETAR EL ESTADO ACTUAL DE LA APP (el tablero que se está viendo) =====
+            // ===== EMPAQUETAR EL ESTADO ACTUAL DE LA APP (el tablero que se está viendo) =====
 function buildFullBackupObject() {
   return {
     transacciones: transactions,
@@ -76,14 +62,12 @@ function buildFullBackupObject() {
   };
 }
 
-// Evita guardar en Firestore mientras se está aplicando un cambio que ACABA
-// DE LLEGAR desde la nube (si no, se podría reenviar de vuelta en bucle).
 let _cargandoDesdeFirebase = false;
 let _arranqueRapido = false;
 
-// Debounce corto (350ms) + red de seguridad al cambiar de pestaña/recargar,
-// igual que en la Fase 1.
+
 let _guardarFirebaseTimer = null;
+//  GUARDAR DATOS: espera 350 ms y guarda una sola vez
 function scheduleGuardarEnFirebase() {
   if (_cargandoDesdeFirebase) return;
   if (_guardarFirebaseTimer) clearTimeout(_guardarFirebaseTimer);
@@ -105,12 +89,14 @@ window.addEventListener('pagehide', function() {
 });
 
 // ===== GUARDAR EL TABLERO ACTIVO EN FIRESTORE =====
+//  GUARDAR DATOS EN FIREBASE
 function guardarEnFirebase() {
   if (_cargandoDesdeFirebase) return;
   if (!currentUid || !currentBoardId) {
     console.warn('⚠️ No hay uid o tablero activo. No se guarda.');
     return;
   }
+  //  ESTA LÍNEA ESCRIBE EN FIRESTORE (colección 'tableros')
   getTableroDocRef(currentBoardId).set({ data: buildFullBackupObject() }, { merge: true })
     .then(() => console.log('✅ Tablero guardado:', currentBoardId))
     .catch(error => {
@@ -124,11 +110,12 @@ function guardarEnFirebase() {
     });
 }
 
-// ===== ESCUCHAR EL TABLERO ACTIVO EN TIEMPO REAL =====
+// ===== Conecta EL TABLERO ACTIVO EN TIEMPO REAL =====
 function escucharTableroActivo(boardId) {
   if (_tableroUnsubscribe) { _tableroUnsubscribe(); _tableroUnsubscribe = null; }
   if (!boardId) { renderApp(); return; }
 
+  // escucha la base de datos y actualiza la app al instante
   _tableroUnsubscribe = getTableroDocRef(boardId).onSnapshot((doc) => {
     if (doc.metadata && doc.metadata.hasPendingWrites) return; // eco de nuestra propia escritura
 

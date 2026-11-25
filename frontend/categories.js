@@ -87,9 +87,7 @@ const closeSearch = function() {
   document.getElementById('searchModal').classList.remove('open');
 };
 
-// ===== BÚSQUEDA SIN IMPORTAR TILDES =====
-// "prestamo" debe encontrar "Préstamo" y viceversa. Quita los acentos antes
-// de comparar, en vez de exigir una coincidencia exacta de caracteres.
+
 function normalizeSearchText(str) {
   return (str || '').toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 }
@@ -242,6 +240,7 @@ const openEmojiPickerForWizard = function() {
   });
 };
 
+//  CREAR CATEGORÍA /...
 const saveWizardCategory = function() {
   var name = document.getElementById('wizardCategoryName').value.trim();
   if (!name) {
@@ -263,6 +262,7 @@ const saveWizardCategory = function() {
     }
   }
   
+  //  Se agrega la categoría a la lista y se guarda en Firebase
   allCategories.push(newCat);
   scheduleGuardarEnFirebase();
   closeNewCategoryWizard();
@@ -379,7 +379,7 @@ const saveAddWizardCategory = function() {
   }
   
   allCategories.push(newCat);
-  scheduleGuardarEnFirebase(); // FALTABA: crear categoría desde el asistente de cobro recurrente tampoco guardaba en la nube.
+  scheduleGuardarEnFirebase(); // crear categoría y mandar a firebase  
 
   if (addWizardReturnContext === 'recurring') {
     closeNewCategoryFromAdd();

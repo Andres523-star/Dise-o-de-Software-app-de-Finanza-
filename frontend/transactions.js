@@ -129,8 +129,10 @@ const updateModalColorsAndType = function() {
 };
 window.updateModalColorsAndType = updateModalColorsAndType;
 
-document.getElementById('btnMinus').onclick = function() { txType = 'expense'; updateModalColorsAndType(); };
-document.getElementById('btnPlus').onclick = function() { txType = 'income'; updateModalColorsAndType(); };
+
+document.getElementById('btnMinus').onclick = function() { txType = 'expense'; updateModalColorsAndType(); };  //   EGRESO: el botón de GASTO
+document.getElementById('btnPlus').onclick = function() { txType = 'income'; updateModalColorsAndType(); };// Botón: marca la transacción como INGRESO
+
 document.getElementById('btnSaveType').onclick = function() { 
     txType = 'save'; 
     saveSubType = 'gastos_futuros'; 
@@ -189,8 +191,7 @@ window.openEditTransaction = function(id) {
   var select = document.getElementById('modalCurrencySelect');
   if (select) {
     select.innerHTML = buildCurrencyOptionsHtml(modalCurrency);
-    // Si la transacción se guardó en una moneda que el usuario ya no tiene
-    // configurada, se agrega igual como opción para no perder el dato.
+    
     if (select.value !== modalCurrency) {
       var info = getCurrencyInfo(modalCurrency);
       select.innerHTML += '<option value="' + modalCurrency + '" selected>' + info.flag + ' ' + modalCurrency + '</option>';
@@ -229,7 +230,7 @@ window.openEditTransaction = function(id) {
   document.getElementById('btnDeleteTx').style.display = 'flex';
   document.getElementById('addModal').classList.add('open');
 };
-
+// Borrar transacción
 window.deleteCurrentEditingTx = function() {
   if(editingTxId) {
     transactions = transactions.filter(function(t) { return t.id !== editingTxId; });
@@ -240,11 +241,13 @@ window.deleteCurrentEditingTx = function() {
   }
 };
 
+// GUARDAR TRANSACCIÓN (ingreso o egreso)
 window.saveTransaction = function() {
   var desc = document.getElementById('inputDesc').value.trim();
   var rawStr = inpAmt.dataset.raw || '';
   var amount = parseFloat(rawStr);
 
+// Mayor a cero
   if(isNaN(amount) || amount <= 0) {
     showCustomAlert('⚠️', 'Monto inválido', 'Por favor ingresa un monto válido.');
     return;
@@ -296,6 +299,7 @@ window.saveTransaction = function() {
       if (dateUserPicked) { t.date = todayStr; t.month = _mesSel; t.y = selectedYear; }
     }
   } else {
+    // Se arma el objeto de la transacción y se agrega a la lista
     var newTx = {
       id: Date.now(),
       month: _mesSel,
@@ -312,6 +316,7 @@ window.saveTransaction = function() {
       origAmount: finalOrigAmount,
       tags: currentTxTags.slice()
     };
+ // Se agregar a la lista
     transactions.push(newTx);
     _nuevoId = newTx.id;
     if (_mesSel !== currentMonth) {
@@ -332,6 +337,7 @@ window.saveTransaction = function() {
   document.getElementById('tagInputPanel').style.display = 'none';
   alertedCategories = {};
   renderApp();
+  // Se manda a guardar en Firebase
   scheduleGuardarEnFirebase();
   if (_nuevoId) window.openTxDetail(_nuevoId);
 };

@@ -1,4 +1,4 @@
-// ===== SISTEMA DE MONEDAS (principal + secundarias, con tasas en vivo) =====
+            // ===== SISTEMA DE MONEDAS (principal + secundarias, con tasas en vivo) =====
 const currencyCatalog = [
   { code: 'COP', name: 'Peso colombiano', flag: '🇨🇴' },
   { code: 'USD', name: 'Dólar estadounidense', flag: '🇺🇸' },
@@ -21,7 +21,7 @@ function getCurrencyInfo(code) {
   return currencyCatalog.find(function(c) { return c.code === code; }) || { code: code, name: code, flag: '💱' };
 }
 
-// --- Estado: moneda principal + lista ordenada de secundarias ---
+                // --- Estado: moneda principal + lista ordenada de secundarias ---
 let primaryCurrency = 'COP';
 let secondaryCurrencies = ['USD'];
 try {
@@ -44,16 +44,18 @@ function saveCurrencySettings() {
   localStorage.setItem('isUSD_v29', String(isUSD));
 }
 
-// --- Tasas de cambio en vivo (base COP), desde open.er-api.com (gratis, sin API key) ---
+              // --- Tasas de cambio en vivo (base COP), desde open.er-api.com (gratis, sin API key) ---
 let currencyRates = { COP: 1 };
 try {
   var storedRates = localStorage.getItem('currencyRates_v1');
   if (storedRates) currencyRates = JSON.parse(storedRates);
 } catch(e) { currencyRates = { COP: 1 }; }
 
+//  TRM: actualiza las tasas de cambio (cada 12 horas)
 function updateCurrencyRates(force) {
   var lastUpdate = parseInt(localStorage.getItem('currencyRatesUpdatedAt_v1') || '0', 10);
   if (!force && (Date.now() - lastUpdate) < 12 * 60 * 60 * 1000) return Promise.resolve(currencyRates);
+  // TRM: AQUÍ SE CONECTA con la API de divisas
   return fetch('https://open.er-api.com/v6/latest/COP')
     .then(function(res) { return res.json(); })
     .then(function(data) {
