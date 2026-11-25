@@ -1,0 +1,1589 @@
+{
+  "info": {
+    "name": "Mis Finanzas – API Java (Spring Boot)",
+    "description": "Pruebas de la implementación representativa en Java de Mis Finanzas (Spring Boot + MongoDB).\n\n1. Ejecuta la API (README de misfinanzas-api).\n2. Usa Postman de escritorio (o Desktop Agent): la API corre en localhost:8080.\n3. Run collection para correr todas las pruebas.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.test(\"Responde en menos de 3 segundos\", () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "tableroId",
+      "value": "tablero-demo"
+    },
+    {
+      "key": "usuarioId",
+      "value": "usr-andres"
+    },
+    {
+      "key": "nuevoTableroId",
+      "value": ""
+    },
+    {
+      "key": "transaccionId",
+      "value": ""
+    },
+    {
+      "key": "ingresoId",
+      "value": ""
+    },
+    {
+      "key": "saldoNuAntes",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Divisas (TRM) – IAnalistaDivisas + TrmApiAdapter",
+      "description": "API externa de tasas a través del adaptador (patrón Adaptador).",
+      "item": [
+        {
+          "name": "1.1 Tasas con base USD → 200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/divisas/USD",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "divisas",
+                "USD"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 200\", () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "pm.test(\"Trae la tasa del peso colombiano\", () => pm.expect(pm.response.json()).to.have.property(\"COP\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.2 Convertir 100 USD a COP → 200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/divisas/convertir?monto=100&de=USD&a=COP",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "divisas",
+                "convertir"
+              ],
+              "query": [
+                {
+                  "key": "monto",
+                  "value": "100"
+                },
+                {
+                  "key": "de",
+                  "value": "USD"
+                },
+                {
+                  "key": "a",
+                  "value": "COP"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 200\", () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "const r = pm.response.json();",
+                  "pm.test(\"resultado = monto × tasa\", () => pm.expect(r.resultado).to.be.closeTo(r.monto * r.tasa, 0.01));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.3 Moneda que no existe → 422",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/divisas/XXX",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "divisas",
+                "XXX"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 422\", () => pm.expect(pm.response.code).to.be.oneOf([422]));",
+                  "pm.test(\"Explica que la moneda no es soportada\", () => pm.expect(pm.response.json().mensaje).to.include(\"no es soportada\"));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Tableros y colaboración (HU-03, HU-04, HU-21)",
+      "description": "",
+      "item": [
+        {
+          "name": "2.1 Ver el tablero con su balance → 200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tableros/{{tableroId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tableros",
+                "{{tableroId}}"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 200\", () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "pm.test(\"Tiene balance\", () => pm.expect(pm.response.json()).to.have.property(\"balance\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.2 Tableros del usuario → 200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tableros?usuarioId={{usuarioId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tableros"
+              ],
+              "query": [
+                {
+                  "key": "usuarioId",
+                  "value": "{{usuarioId}}"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 200\", () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "pm.test(\"Es una lista\", () => pm.expect(pm.response.json()).to.be.an(\"array\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.3 Resumen del mes → 200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tableros/{{tableroId}}/resumen",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tableros",
+                "{{tableroId}}",
+                "resumen"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 200\", () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "const r = pm.response.json();",
+                  "pm.test(\"balance = ingresos − gastos − ahorro\", () => pm.expect(r.balanceMes).to.eql(r.ingresos - r.egresos - r.ahorro));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.4 Crear tablero 'Mi tienda' → 201",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tableros",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tableros"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Mi tienda\",\n  \"tipo\": \"NEGOCIO\",\n  \"moneda\": \"COP\",\n  \"propietarioId\": \"{{usuarioId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 201\", () => pm.expect(pm.response.code).to.be.oneOf([201]));",
+                  "pm.collectionVariables.set(\"nuevoTableroId\", pm.response.json().id);",
+                  "pm.test(\"El creador queda como PROPIETARIO\", () => pm.expect(pm.response.json().miembros[0].rol).to.eql(\"PROPIETARIO\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.5 Renombrar el tablero → 200",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tableros/{{nuevoTableroId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tableros",
+                "{{nuevoTableroId}}"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Tienda de ropa\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 200\", () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "pm.test(\"Nombre cambiado\", () => pm.expect(pm.response.json().nombre).to.eql(\"Tienda de ropa\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.6 Invitar a Laura como EDITOR → 200",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tableros/{{nuevoTableroId}}/miembros",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tableros",
+                "{{nuevoTableroId}}",
+                "miembros"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"laura@ejemplo.com\",\n  \"rol\": \"EDITOR\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 200\", () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "pm.test(\"Ahora hay 2 miembros\", () => pm.expect(pm.response.json().miembros.length).to.eql(2));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.7 Invitarla otra vez → 422",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tableros/{{nuevoTableroId}}/miembros",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tableros",
+                "{{nuevoTableroId}}",
+                "miembros"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"laura@ejemplo.com\",\n  \"rol\": \"LECTOR\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 422\", () => pm.expect(pm.response.code).to.be.oneOf([422]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.8 Eliminar el tablero → 204",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tableros/{{nuevoTableroId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tableros",
+                "{{nuevoTableroId}}"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 204\", () => pm.expect(pm.response.code).to.be.oneOf([204]));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Cuentas (HU-07)",
+      "description": "",
+      "item": [
+        {
+          "name": "3.1 Ver cuentas y saldos → 200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tableros/{{tableroId}}/cuentas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tableros",
+                "{{tableroId}}",
+                "cuentas"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 200\", () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "const nu = pm.response.json().find(c => c.id === \"cta-nu\");",
+                  "if (nu) pm.collectionVariables.set(\"saldoNuAntes\", nu.saldo);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.2 Crear cuenta Bancolombia → 201",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tableros/{{tableroId}}/cuentas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tableros",
+                "{{tableroId}}",
+                "cuentas"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Bancolombia\",\n  \"tipo\": \"BANCO\",\n  \"color\": \"#FDDA24\",\n  \"saldoInicial\": 500000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 201\", () => pm.expect(pm.response.code).to.be.oneOf([201]));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. Categorías (HU-09)",
+      "description": "",
+      "item": [
+        {
+          "name": "4.1 Ver categorías → 200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tableros/{{tableroId}}/categorias",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tableros",
+                "{{tableroId}}",
+                "categorias"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 200\", () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4.2 Buscar 'com' → 200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tableros/{{tableroId}}/categorias?buscar=com",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tableros",
+                "{{tableroId}}",
+                "categorias"
+              ],
+              "query": [
+                {
+                  "key": "buscar",
+                  "value": "com"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 200\", () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "pm.test(\"Encuentra Comida\", () => pm.expect(pm.response.json().map(c => c.nombre)).to.include(\"Comida\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4.3 Crear categoría Mascotas → 201",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tableros/{{tableroId}}/categorias",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tableros",
+                "{{tableroId}}",
+                "categorias"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Mascotas\",\n  \"icono\": \"🐶\",\n  \"tipo\": \"EGRESO\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 201\", () => pm.expect(pm.response.code).to.be.oneOf([201]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4.4 Cambiar color de Comida → 200",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/categorias/cat-comida",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "categorias",
+                "cat-comida"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"color\": \"#FF9500\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 200\", () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "pm.test(\"Color nuevo\", () => pm.expect(pm.response.json().color).to.eql(\"#FF9500\"));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "5. Transacciones (HU-05, HU-06, HU-08) – TransaccionController",
+      "description": "",
+      "item": [
+        {
+          "name": "5.1 Ver transacciones del tablero → 200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tableros/{{tableroId}}/transacciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tableros",
+                "{{tableroId}}",
+                "transacciones"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 200\", () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5.2 Registrar gasto de 200.000 en Comida (Nu) → 201",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tableros/{{tableroId}}/transacciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tableros",
+                "{{tableroId}}",
+                "transacciones"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"EGRESO\",\n  \"monto\": 200000,\n  \"cuentaId\": \"cta-nu\",\n  \"categoriaId\": \"cat-comida\",\n  \"descripcion\": \"Gasto desde Postman\",\n  \"detalle\": \"D1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 201\", () => pm.expect(pm.response.code).to.be.oneOf([201]));",
+                  "const r = pm.response.json();",
+                  "pm.collectionVariables.set(\"transaccionId\", r.id);",
+                  "pm.test(\"Es un EGRESO\", () => pm.expect(r.tipo).to.eql(\"EGRESO\"));",
+                  "const antes = Number(pm.collectionVariables.get(\"saldoNuAntes\"));",
+                  "if (!isNaN(antes)) pm.test(\"El saldo de Nu bajó 200.000\", () => pm.expect(r.saldoCuenta).to.eql(antes - 200000));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5.3 Ver solo los gastos → 200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tableros/{{tableroId}}/transacciones?tipo=EGRESO",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tableros",
+                "{{tableroId}}",
+                "transacciones"
+              ],
+              "query": [
+                {
+                  "key": "tipo",
+                  "value": "EGRESO"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 200\", () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "pm.test(\"Todos son EGRESO\", () => pm.response.json().forEach(t => pm.expect(t.tipo).to.eql(\"EGRESO\")));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5.4 Editar el gasto a 50.000 en Nequi → 200",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/transacciones/{{transaccionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "transacciones",
+                "{{transaccionId}}"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"EGRESO\",\n  \"monto\": 50000,\n  \"cuentaId\": \"cta-nequi\",\n  \"categoriaId\": \"cat-comida\",\n  \"descripcion\": \"Gasto editado\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 200\", () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "pm.test(\"Monto editado\", () => pm.expect(pm.response.json().monto).to.eql(50000));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5.5 Eliminar el gasto → 204",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/transacciones/{{transaccionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "transacciones",
+                "{{transaccionId}}"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 204\", () => pm.expect(pm.response.code).to.be.oneOf([204]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5.6 Registrar ingreso de 400.000 (Nequi) → 201",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tableros/{{tableroId}}/transacciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tableros",
+                "{{tableroId}}",
+                "transacciones"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"INGRESO\",\n  \"monto\": 400000,\n  \"cuentaId\": \"cta-nequi\",\n  \"categoriaId\": \"cat-salario\",\n  \"descripcion\": \"Venta\",\n  \"detalle\": \"Cliente\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 201\", () => pm.expect(pm.response.code).to.be.oneOf([201]));",
+                  "pm.collectionVariables.set(\"ingresoId\", pm.response.json().id);",
+                  "pm.test(\"Es un INGRESO\", () => pm.expect(pm.response.json().tipo).to.eql(\"INGRESO\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5.7 Eliminar el ingreso → 204",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/transacciones/{{ingresoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "transacciones",
+                "{{ingresoId}}"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 204\", () => pm.expect(pm.response.code).to.be.oneOf([204]));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "6. Presupuestos y alertas (HU-10, HU-11)",
+      "description": "Para ver la alerta del 80 %: ejecuta 5.2 y luego 6.1 y 9.1 (antes de 5.5).",
+      "item": [
+        {
+          "name": "6.1 Presupuestos del mes con % consumido → 200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tableros/{{tableroId}}/presupuestos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tableros",
+                "{{tableroId}}",
+                "presupuestos"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 200\", () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "pm.test(\"Cada presupuesto trae su porcentaje\", () => pm.response.json().forEach(p => pm.expect(p).to.have.property(\"porcentajeConsumido\")));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "6.2 Presupuesto de Comida repetido → 422",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tableros/{{tableroId}}/presupuestos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tableros",
+                "{{tableroId}}",
+                "presupuestos"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoriaId\": \"cat-comida\",\n  \"mes\": 11,\n  \"anio\": 2026,\n  \"limite\": 500000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 422/201\", () => pm.expect(pm.response.code).to.be.oneOf([422, 201]));",
+                  "pm.test(\"No permite duplicar el presupuesto del mismo mes\", () => { if (pm.response.code === 422) pm.expect(pm.response.json().mensaje).to.include(\"Ya existe\"); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "7. Metas de ahorro (HU-12, HU-13)",
+      "description": "",
+      "item": [
+        {
+          "name": "7.1 Ver metas → 200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tableros/{{tableroId}}/metas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tableros",
+                "{{tableroId}}",
+                "metas"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 200\", () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "7.2 Abonar 100.000 desde Nu → 200",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/metas/meta-viaje/abonos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "metas",
+                "meta-viaje",
+                "abonos"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 100000,\n  \"cuentaId\": \"cta-nu\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 200\", () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "pm.test(\"La meta muestra su porcentaje\", () => pm.expect(pm.response.json()).to.have.property(\"porcentaje\"));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "8. Cobros recurrentes (HU-14, HU-15)",
+      "description": "",
+      "item": [
+        {
+          "name": "8.1 Ver cobros recurrentes → 200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tableros/{{tableroId}}/cobros",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tableros",
+                "{{tableroId}}",
+                "cobros"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 200\", () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "8.2 Generar el cobro de Netflix → 201",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/cobros/cobro-netflix/generar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cobros",
+                "cobro-netflix",
+                "generar"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 201\", () => pm.expect(pm.response.code).to.be.oneOf([201]));",
+                  "pm.test(\"Se registró un gasto de Netflix\", () => { const r = pm.response.json(); pm.expect(r.tipo).to.eql(\"EGRESO\"); pm.expect(r.descripcion).to.eql(\"Netflix\"); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "9. Notificaciones – INotificador",
+      "description": "",
+      "item": [
+        {
+          "name": "9.1 Ver notificaciones del tablero → 200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tableros/{{tableroId}}/notificaciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tableros",
+                "{{tableroId}}",
+                "notificaciones"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 200\", () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "10. Validaciones y errores",
+      "description": "El sistema rechaza datos inválidos con mensajes claros.",
+      "item": [
+        {
+          "name": "10.1 Gasto con monto 0 → 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tableros/{{tableroId}}/transacciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tableros",
+                "{{tableroId}}",
+                "transacciones"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"EGRESO\",\n  \"monto\": 0,\n  \"cuentaId\": \"cta-nu\",\n  \"categoriaId\": \"cat-comida\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 400\", () => pm.expect(pm.response.code).to.be.oneOf([400]));",
+                  "pm.test(\"Mensaje: El monto debe ser mayor a cero\", () => pm.expect(pm.response.text()).to.include(\"El monto debe ser mayor a cero\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "10.2 Gasto sin categoría → 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tableros/{{tableroId}}/transacciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tableros",
+                "{{tableroId}}",
+                "transacciones"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"EGRESO\",\n  \"monto\": 1000,\n  \"cuentaId\": \"cta-nu\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 400\", () => pm.expect(pm.response.code).to.be.oneOf([400]));",
+                  "pm.test(\"Mensaje: La categoría es obligatoria\", () => pm.expect(pm.response.text()).to.include(\"La categoría es obligatoria\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "10.3 Tablero que no existe → 404",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tableros/no-existe",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tableros",
+                "no-existe"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 404\", () => pm.expect(pm.response.code).to.be.oneOf([404]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "10.4 Ahorro sin fondos (Efectivo) → 422",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tableros/{{tableroId}}/transacciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tableros",
+                "{{tableroId}}",
+                "transacciones"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"AHORRO\",\n  \"monto\": 99999999,\n  \"cuentaId\": \"cta-efectivo\",\n  \"categoriaId\": \"cat-ahorro\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 422\", () => pm.expect(pm.response.code).to.be.oneOf([422]));",
+                  "pm.test(\"Mensaje: No tienes esa cantidad disponible\", () => pm.expect(pm.response.json().mensaje).to.include(\"No tienes esa cantidad disponible\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "10.5 Gasto con categoría de ingreso → 422",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tableros/{{tableroId}}/transacciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tableros",
+                "{{tableroId}}",
+                "transacciones"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"EGRESO\",\n  \"monto\": 1000,\n  \"cuentaId\": \"cta-nu\",\n  \"categoriaId\": \"cat-salario\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 422\", () => pm.expect(pm.response.code).to.be.oneOf([422]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "10.6 JSON mal formado → 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tableros/{{tableroId}}/transacciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tableros",
+                "{{tableroId}}",
+                "transacciones"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"tipo\": \"EGRESO\", \"monto\": 1000, ",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 400\", () => pm.expect(pm.response.code).to.be.oneOf([400]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "10.7 Tipo que no existe (PRESTAMO) → 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tableros/{{tableroId}}/transacciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tableros",
+                "{{tableroId}}",
+                "transacciones"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"PRESTAMO\",\n  \"monto\": 1000,\n  \"cuentaId\": \"cta-nu\",\n  \"categoriaId\": \"cat-comida\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código de estado 400\", () => pm.expect(pm.response.code).to.be.oneOf([400]));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

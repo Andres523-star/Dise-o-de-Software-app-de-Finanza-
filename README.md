@@ -12,7 +12,7 @@ Aplicación web progresiva (**PWA**) para gestionar las finanzas personales y de
 
 ## ✨ Funcionalidades
 - Ingresos, egresos y ahorros en varias cuentas (Efectivo, Nequi, Nu).
-- Presupuestos mensuales por categoría con alertas al 80% y 100%.
+- Presupuestos mensuales por categoría con alertas al 80 %, 90 % y 100 %.
 - Metas de ahorro con abonos y "tomar de balance".
 - Cobros recurrentes (suscripciones y salarios) con notificaciones push.
 - Analista Financiero: semáforo de compra/venta de dólares (TRM de los últimos 90 días).
@@ -22,22 +22,32 @@ Aplicación web progresiva (**PWA**) para gestionar las finanzas personales y de
 
 ## 🛠️ Tecnologías
 - **Frontend:** HTML5, CSS3, JavaScript Vanilla, Service Worker.
-- **Backend actual:** Firebase (Authentication, Firestore, Cloud Functions, Cloud Messaging, Hosting).
-- **Diseño de arquitectura:** 3 capas (Controller → Service → Repository) con persistencia documental en MongoDB.
+- **Backend de la PWA:** Firebase (Authentication, Firestore, Cloud Functions, Cloud Messaging, Hosting).
+- **Implementación representativa en Java:** Spring Boot 3.5 + MongoDB en [`misfinanzas-api/`](misfinanzas-api), con las capas del diseño (Controller → Service → Repository).
+
+## ☕ Implementación representativa en Java
+La carpeta [`misfinanzas-api/`](misfinanzas-api) contiene una API REST en **Java + Spring Boot + MongoDB** que implementa
+las clases del diagrama de clases (Tablero, Cuenta, Categoría, Transacción → Ingreso/Egreso/Ahorro, Presupuesto,
+MetaAhorro, CobroRecurrente) y las capas del diagrama de componentes. Incluye pruebas JUnit, Swagger y una
+colección de Postman. Instrucciones en su [README](misfinanzas-api/README.md).
 
 ## 📁 Estructura
 ```
-index.html, app.js, style.css   → entrada de la app
+index.html, app.js, style.css   → entrada de la PWA
 frontend/                        → pantallas y lógica de interfaz
 backend/                         → autenticación, tableros, notificaciones, Firebase
 sw.js                            → Service Worker (offline)
 functions/                       → Cloud Functions (recordatorios de cobros)
-docs/                            → historias de usuario y descripción de diagramas
+misfinanzas-api/                 → implementación en Java (Spring Boot + MongoDB)
+docs/historias/                  → historias de usuario (INVEST + Gherkin), una por archivo
+docs/trazabilidad.md             → matriz requisitos → diseño → código → pruebas
+docs/diagramas/                  → diagramas UML (.vpd y PNG)
 ```
 
 ## 📐 Documentación
-- **Historias de usuario:** Issues con la etiqueta *Historia de Usuario* (HU-01 a HU-16).
-- **Diagramas:** Issues con la etiqueta *Diagrama* (Diagrama 1 a 5).
+- **Historias de usuario:** [`docs/historias/00-resumen.md`](docs/historias/00-resumen.md) (también en los Issues con la etiqueta *Historia de Usuario*).
+- **Trazabilidad y patrones de diseño:** [`docs/trazabilidad.md`](docs/trazabilidad.md).
+- **Diagramas:** [`docs/diagramas/`](docs/diagramas) y los Issues con la etiqueta *Diagrama* (Diagrama 1 a 5).
 - **Información general:** Issue con la etiqueta *Información General*.
 
 ---
