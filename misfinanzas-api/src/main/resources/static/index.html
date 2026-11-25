@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mis Finanzas · Java + AWS</title>
+<style>
+  :root { --bg:#f4f5f7; --card:#fff; --txt:#1a1a1a; --muted:#6b7280; --rojo:#ef4444; --verde:#16a34a; --azul:#2563eb; --borde:#e5e7eb; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; background:var(--bg); color:var(--txt); }
+  header { background:#111827; color:#fff; padding:16px 20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+  header h1 { font-size:20px; }
+  header small { color:#9ca3af; font-size:12px; }
+  .tag { background:#374151; padding:4px 10px; border-radius:999px; font-size:12px; }
+  main { max-width:1100px; margin:0 auto; padding:20px; display:grid; gap:16px; grid-template-columns:1fr 1fr; }
+  @media (max-width:800px){ main { grid-template-columns:1fr; } }
+  .card { background:var(--card); border-radius:16px; padding:18px; box-shadow:0 1px 3px rgba(0,0,0,.06); }
+  .full { grid-column:1/-1; }
+  h2 { font-size:15px; margin-bottom:12px; color:#374151; }
+  .resumen { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+  @media (max-width:600px){ .resumen { grid-template-columns:repeat(2,1fr); } }
+  .kpi small { color:var(--muted); font-size:12px; display:block; }
+  .kpi b { font-size:22px; }
+  .cuentas { display:flex; gap:10px; flex-wrap:wrap; }
+  .cuenta { border:1px solid var(--borde); border-radius:12px; padding:10px 14px; min-width:140px; }
+  .cuenta span { display:block; font-size:12px; color:var(--muted); }
+  .cuenta b { font-size:16px; }
+  .tipos { display:flex; gap:8px; margin-bottom:10px; }
+  .tipos button { flex:1; padding:10px; border-radius:10px; border:1px solid var(--borde); background:#fff; cursor:pointer; font-weight:600; }
+  .tipos button.on[data-t=EGRESO] { background:#fee2e2; border-color:var(--rojo); color:var(--rojo); }
+  .tipos button.on[data-t=INGRESO] { background:#dcfce7; border-color:var(--verde); color:var(--verde); }
+  .tipos button.on[data-t=AHORRO] { background:#dbeafe; border-color:var(--azul); color:var(--azul); }
+  form { display:grid; gap:8px; }
+  input, select { padding:10px; border:1px solid var(--borde); border-radius:10px; font-size:14px; width:100%; }
+  .btn { background:#111827; color:#fff; border:0; padding:12px; border-radius:10px; font-weight:600; cursor:pointer; }
+  .msg { font-size:13px; padding:8px 10px; border-radius:8px; display:none; }
+  .msg.err { display:block; background:#fee2e2; color:#991b1b; }
+  .msg.ok { display:block; background:#dcfce7; color:#166534; }
+  ul { list-style:none; }
+  .tx { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--borde); gap:8px; }
+  .tx .ico { font-size:22px; width:36px; text-align:center; }
+  .tx .info { flex:1; }
+  .tx .info small { color:var(--muted); display:block; font-size:12px; }
+  .monto.EGRESO { color:var(--rojo); } .monto.INGRESO { color:var(--verde); } .monto.AHORRO { color:var(--azul); }
+  .del { border:0; background:none; cursor:pointer; font-size:16px; color:var(--muted); }
+  .barra { height:10px; background:#e5e7eb; border-radius:999px; overflow:hidden; margin:6px 0 4px; }
+  .barra div { height:100%; background:var(--verde); }
+  .barra div.ADVERTENCIA { background:#f59e0b; } .barra div.LIMITE_ALCANZADO { background:var(--rojo); }
+  .noti { padding:8px 0; border-bottom:1px solid var(--borde); font-size:14px; }
+  .noti small { color:var(--muted); display:block; }
+  .fila { display:flex; gap:8px; }
+  footer { text-align:center; color:var(--muted); font-size:12px; padding:20px; }
+  footer a { color:var(--azul); }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>💰 Mis Finanzas</h1>
+    <small>Frontend web conectado a la API Java (Spring Boot + MongoDB) en AWS Elastic Beanstalk</small>
+  </div>
+  <span class="tag" id="tablero">tablero-demo</span>
+</header>
+
+<main>
+  <section class="card full">
+    <h2>Resumen del mes <span id="mes" style="color:#9ca3af;font-weight:400"></span></h2>
+    <div class="resumen">
+      <div class="kpi"><small>Balance del mes</small><b id="k-balance">–</b></div>
+      <div class="kpi"><small>Ingresos</small><b id="k-ingresos" style="color:var(--verde)">–</b></div>
+      <div class="kpi"><small>Gastos</small><b id="k-egresos" style="color:var(--rojo)">–</b></div>
+      <div class="kpi"><small>Saldo total en cuentas</small><b id="k-saldo">–</b></div>
+    </div>
+  </section>
+
+  <section class="card full">
+    <h2>Cuentas</h2>
+    <div class="cuentas" id="cuentas"></div>
+  </section>
+
+  <section class="card">
+    <h2>Registrar movimiento</h2>
+    <div class="tipos">
+      <button type="button" data-t="EGRESO" class="on">– Gasto</button>
+      <button type="button" data-t="INGRESO">+ Ingreso</button>
+      <button type="button" data-t="AHORRO">Ahorro</button>
+    </div>
+    <form id="form">
+      <input id="monto" type="number" placeholder="Monto (COP)" min="0" step="any">
+      <select id="categoria"></select>
+      <select id="cuenta"></select>
+      <input id="descripcion" placeholder="Descripción (opcional)">
+      <button class="btn" type="submit">Guardar</button>
+      <div class="msg" id="msg"></div>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>Presupuestos del mes</h2>
+    <div id="presupuestos"></div>
+    <h2 style="margin-top:18px">Notificaciones</h2>
+    <div id="notificaciones"></div>
+  </section>
+
+  <section class="card">
+    <h2>Movimientos</h2>
+    <ul id="lista"></ul>
+  </section>
+
+  <section class="card">
+    <h2>Conversor de divisas (TRM)</h2>
+    <div class="fila">
+      <input id="dv-monto" type="number" value="100" step="any">
+      <select id="dv-de"><option>USD</option><option>COP</option><option>EUR</option></select>
+      <select id="dv-a"><option>COP</option><option>USD</option><option>EUR</option></select>
+    </div>
+    <button class="btn" id="dv-btn" style="margin-top:8px;width:100%">Convertir</button>
+    <p id="dv-res" style="margin-top:10px;font-size:18px;font-weight:600"></p>
+  </section>
+</main>
+
+<footer>
+  Implementación representativa en Java · Diseño de Software ·
+  <a href="/swagger-ui/index.html">Documentación de la API (Swagger)</a>
+</footer>
+
+<script>
+  // El frontend llama a la API REST de Spring Boot (capa Controller) con fetch.
+  const TABLERO = "tablero-demo";
+  const API = "/api";
+  let tipo = "EGRESO", categorias = [], cuentas = [];
+  const $ = (id) => document.getElementById(id);
+  const cop = (n) => "$" + Math.round(n).toLocaleString("es-CO");
+
+  async function api(ruta, opciones) {
+    const r = await fetch(API + ruta, opciones);
+    if (r.status === 204) return null;
+    const datos = await r.json().catch(() => null);
+    if (!r.ok) {
+      const det = datos && datos.detalles && datos.detalles.length ? " (" + datos.detalles.join(", ") + ")" : "";
+      throw new Error((datos && datos.mensaje ? datos.mensaje : "Error " + r.status) + det);
+    }
+    return datos;
+  }
+
+  function mensaje(texto, ok) {
+    const m = $("msg"); m.textContent = texto; m.className = "msg " + (ok ? "ok" : "err");
+    setTimeout(() => { m.className = "msg"; }, 5000);
+  }
+
+  function llenarCategorias() {
+    $("categoria").innerHTML = categorias.filter(c => c.tipo === tipo)
+      .map(c => `<option value="${c.id}">${c.icono} ${c.nombre}</option>`).join("");
+  }
+
+  async function cargar() {
+    const hoy = new Date();
+    $("mes").textContent = hoy.toLocaleDateString("es-CO", { month: "long", year: "numeric" });
+    const [resumen, ctas, cats, txs, pres, notis] = await Promise.all([
+      api(`/tableros/${TABLERO}/resumen`),
+      api(`/tableros/${TABLERO}/cuentas`),
+      api(`/tableros/${TABLERO}/categorias`),
+      api(`/tableros/${TABLERO}/transacciones`),
+      api(`/tableros/${TABLERO}/presupuestos`),
+      api(`/tableros/${TABLERO}/notificaciones`)
+    ]);
+    cuentas = ctas; categorias = cats;
+
+    $("k-balance").textContent = cop(resumen.balanceMes);
+    $("k-ingresos").textContent = cop(resumen.ingresos);
+    $("k-egresos").textContent = cop(resumen.egresos);
+    $("k-saldo").textContent = cop(resumen.saldoTotalCuentas);
+
+    $("cuentas").innerHTML = ctas.map(c =>
+      `<div class="cuenta" style="border-left:5px solid ${c.color || '#999'}"><span>${c.nombre}</span><b>${cop(c.saldo)}</b></div>`).join("");
+    $("cuenta").innerHTML = ctas.map(c => `<option value="${c.id}">${c.nombre} (${cop(c.saldo)})</option>`).join("");
+    llenarCategorias();
+
+    const icono = (id) => (cats.find(c => c.id === id) || {}).icono || "📌";
+    const nombreCuenta = (id) => (ctas.find(c => c.id === id) || {}).nombre || id;
+    $("lista").innerHTML = txs.map(t => `
+      <li class="tx">
+        <span class="ico">${icono(t.categoriaId)}</span>
+        <span class="info">${t.descripcion}<small>${t.fecha} · ${nombreCuenta(t.cuentaId)}</small></span>
+        <b class="monto ${t.tipo}">${t.tipo === "INGRESO" ? "+" : "−"}${cop(t.monto)}</b>
+        <button class="del" title="Eliminar" onclick="eliminar('${t.id}')">🗑️</button>
+      </li>`).join("") || "<p style='color:#6b7280'>Sin movimientos</p>";
+
+    $("presupuestos").innerHTML = pres.map(p => {
+      const cat = cats.find(c => c.id === p.categoriaId) || {};
+      return `<div style="margin-bottom:10px"><b>${cat.icono || ""} ${cat.nombre || p.categoriaId}</b>
+        <div class="barra"><div class="${p.estado}" style="width:${Math.min(100, p.porcentajeConsumido)}%"></div></div>
+        <small style="color:#6b7280">${cop(p.gastado)} de ${cop(p.limite)} · ${p.porcentajeConsumido}%</small></div>`;
+    }).join("") || "<p style='color:#6b7280'>Sin presupuestos este mes</p>";
+
+    $("notificaciones").innerHTML = notis.slice(0, 5).map(n =>
+      `<div class="noti">${n.titulo}<small>${n.mensaje}</small></div>`).join("") || "<p style='color:#6b7280'>Sin notificaciones</p>";
+  }
+
+  document.querySelectorAll(".tipos button").forEach(b => b.onclick = () => {
+    document.querySelectorAll(".tipos button").forEach(x => x.classList.remove("on"));
+    b.classList.add("on"); tipo = b.dataset.t; llenarCategorias();
+  });
+
+  $("form").onsubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await api(`/tableros/${TABLERO}/transacciones`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tipo, monto: $("monto").value === "" ? null : Number($("monto").value),
+          cuentaId: $("cuenta").value, categoriaId: $("categoria").value,
+          descripcion: $("descripcion").value
+        })
+      });
+      $("monto").value = ""; $("descripcion").value = "";
+      mensaje("✅ Movimiento guardado", true);
+      await cargar();
+    } catch (err) { mensaje("⚠️ " + err.message, false); }
+  };
+
+  window.eliminar = async (id) => {
+    if (!confirm("¿Eliminar este movimiento?")) return;
+    await api(`/transacciones/${id}`, { method: "DELETE" });
+    await cargar();
+  };
+
+  $("dv-btn").onclick = async () => {
+    try {
+      const r = await api(`/divisas/convertir?monto=${$("dv-monto").value}&de=${$("dv-de").value}&a=${$("dv-a").value}`);
+      $("dv-res").textContent = `${r.monto} ${r.de} = ${r.resultado.toLocaleString("es-CO")} ${r.a}`;
+    } catch (err) { $("dv-res").textContent = "⚠️ " + err.message; }
+  };
+
+  cargar().catch(err => { document.querySelector("main").insertAdjacentHTML("afterbegin",
+    `<div class="card full msg err" style="display:block">No se pudo conectar con la API: ${err.message}</div>`); });
+</script>
+</body>
+</html>

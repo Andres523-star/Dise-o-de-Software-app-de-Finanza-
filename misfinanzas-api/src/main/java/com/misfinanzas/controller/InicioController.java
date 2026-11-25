@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class InicioController {
 
-    @GetMapping("/")
+    @GetMapping("/api")
     public Map<String, Object> inicio() {
         Map<String, Object> info = new LinkedHashMap<>();
         info.put("aplicacion", "Mis Finanzas API");
